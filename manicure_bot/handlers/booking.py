@@ -73,21 +73,18 @@ async def select_time(callback_query: CallbackQuery, state: FSMContext):
         time_obj = datetime.strptime(time_str, "%H:%M").time()
 
         user_data = await state.get_data()
-        selected_date = user_data['selected_date']
+
+        user_id = callback_query.from_user.id
+        user = db.query(User).filter(User.user_id == user_id).first()
+        await state.update_data(selected_time=time_obj)
 
         if "selected_appointment_id" in user_data:
             appointment_id = user_data['selected_appointment_id']
             appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
             if appointment:
-                appointment.time = time_obj
-                db.commit()
-                await callback_query.message.answer(f"Ваша запись была успешно изменена на {selected_date.strftime('%d/%m/%Y')} в {time_str}.")
-                await state.clear()
+                await state.update_data(name=user.name, phone_number=user.phone_number, selected_time=time_obj)
+                await confirm_appointment_with_user_data(callback_query.message, state, user)
         else:
-            user_id = callback_query.from_user.id
-            user = db.query(User).filter(User.user_id == user_id).first()
-            await state.update_data(selected_time=time_obj)
-
             if user:
                 await state.update_data(name=user.name, phone_number=user.phone_number, selected_time=time_obj)
                 await confirm_appointment_with_user_data(callback_query.message, state, user)
@@ -140,13 +137,23 @@ async def confirm_appointment(callback_query: CallbackQuery, state: FSMContext):
             user.name = user_data['name']
             user.phone_number = user_data['phone_number']
 
-        appointment = Appointment(user_id=user_id, date=user_data['selected_date'], time=user_data['selected_time'])
-        db.add(appointment)
+        if "selected_appointment_id" in user_data:
+            appointment_id = user_data["selected_appointment_id"]
+            appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+            if appointment:
+                appointment.date = user_data['selected_date']
+                appointment.time = user_data['selected_time']
+                action_message = "Ваша запись была успешно изменена"
+        else:
+            appointment = Appointment(user_id=user_id, date=user_data['selected_date'], time=user_data['selected_time'])
+            db.add(appointment)
+            action_message = "Ваша запись на маникюр подтверждена"
+
         db.commit()
 
         date_str = appointment.date.strftime("%d/%m/%Y")
         time_str = appointment.time.strftime("%H:%M")
-        await callback_query.message.answer(f'Ваша запись на маникюр подтверждена: {date_str} в {time_str}.', reply_markup=keyboard)
+        await callback_query.message.answer(f'{action_message}: {date_str} в {time_str}.', reply_markup=keyboard)
 
         master_message = f'Новая запись на маникюр: {date_str} в {time_str}. Клиент: {user.name}, телефон: {user.phone_number}.'
         await bot.send_message(chat_id=settings.master_chat_id, text=master_message)
