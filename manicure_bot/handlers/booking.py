@@ -1,27 +1,21 @@
 import re
-from datetime import datetime, time
+from datetime import datetime
 
 from aiogram import types, F, Router
-from aiogram.types import CallbackQuery, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import CallbackQuery, InlineKeyboardButton
 from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback, get_user_locale
 from aiogram.filters.callback_data import CallbackData
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
 
 from manicure_bot.utils import keyboard
 from manicure_bot.bot_instance import bot
 from manicure_bot.config import settings
 from manicure_bot.database import User, Appointment
 from manicure_bot.database.db import get_db
+from manicure_bot.handlers.states import Registration
 
 router = Router()
-
-class Registration(StatesGroup):
-    waiting_for_phone = State()
-    waiting_for_name = State()
-    waiting_for_confirmation = State()
 
 # Define time slots (assuming each appointment takes 1 hour)
 time_slots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]
@@ -179,6 +173,7 @@ async def view_appointment(msg: types.Message):
                         callback_data=f"appointment_{appointment.id}"
                     )
                 )
+            builder.add(InlineKeyboardButton(text="Назад", callback_data="back_to_main"))
             builder.adjust(1)
             await msg.answer(f'Ваши запиcи:', reply_markup=builder.as_markup())
         else:
