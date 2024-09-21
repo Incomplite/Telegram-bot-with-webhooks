@@ -2,7 +2,7 @@ from aiogram import types, Router
 from aiogram.filters import Command
 
 from manicure_bot.config import settings
-from manicure_bot.database import User, Appointment
+from manicure_bot.database import User, Appointment, Service
 from manicure_bot.database.db import get_db
 
 router = Router()
@@ -17,13 +17,16 @@ async def view_all_appointments(msg: types.Message):
                 response = "Все записи:\n"
                 for appointment in appointments:
                     user = db.query(User).filter(User.user_id == appointment.user_id).first()
+                    service = db.query(Service).filter(Service.id == appointment.service_id).first()
                     name = user.name
                     number = user.phone_number
                     date_str = appointment.date.strftime("%d/%m/%Y")
                     time_str = appointment.time.strftime("%H:%M")
+                    service_name = service.name if service else "Неизвестная услуга"
                     response_text = (
                         f'Пользователь {user.user_id}:\n\nИмя: {name}\n'
-                        f'Номер телефона: {number}\nЗапись: {date_str} в {time_str}\n'
+                        f'Номер телефона: {number}\nУслуга: {service_name}\n'
+                        f'Запись: {date_str} в {time_str}\n'
                     )
                     response += response_text
                 await msg.answer(response)

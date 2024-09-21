@@ -4,7 +4,7 @@ from aiogram_calendar import SimpleCalendar, get_user_locale
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 
-from manicure_bot.utils import keyboard
+from manicure_bot.keyboards import main_keyboard
 from manicure_bot.database import Appointment
 from manicure_bot.database.db import get_db
 
@@ -19,26 +19,59 @@ async def handle_appointment_selection(callback_query: CallbackQuery, state: FSM
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Изменить запись", callback_data="change_appointment"))
     builder.add(InlineKeyboardButton(text="Отменить запись", callback_data="cancel_appointment"))
-    builder.add(InlineKeyboardButton(text="Назад", callback_data="back_to_main"))
+    builder.add(InlineKeyboardButton(text="Назад", callback_data="back_to_appointments"))
 
-    await callback_query.message.edit_reply_markup(reply_markup=None)
+    await callback_query.message.delete()
     await callback_query.message.answer(
         "Что вы хотите сделать с этой записью?",
         reply_markup=builder.as_markup()
     )
 
 
+@router.callback_query(lambda c: c.data == "back_to_appointments")
+async def back_to_appointments(callback_query: CallbackQuery, state: FSMContext):
+    with get_db() as db:
+        user_id = callback_query.from_user.id
+        appointments = db.query(Appointment).filter(Appointment.user_id == user_id).all()
+        if appointments:
+            builder = InlineKeyboardBuilder()
+            for appointment in appointments:
+                date_str = appointment.date.strftime("%d/%m/%Y")
+                time_str = appointment.time.strftime("%H:%M")
+                builder.add(
+                    InlineKeyboardButton(
+                        text=f"{date_str} в {time_str}",
+                        callback_data=f"appointment_{appointment.id}"
+                    )
+                )
+            builder.add(InlineKeyboardButton(text="Назад", callback_data="back_to_main"))
+            builder.adjust(1)
+            await callback_query.message.edit_reply_markup(reply_markup=None)
+            await callback_query.message.answer(f'Ваши запиcи:', reply_markup=builder.as_markup())
+        else:
+            await callback_query.message.answer("У вас нет активных записей.")
+
+
 @router.callback_query(lambda c: c.data == "back_to_main")
 async def back_to_main(callback_query: CallbackQuery):
-    await callback_query.message.edit_reply_markup(reply_markup=None)
+    user_id = callback_query.from_user.id
+    await callback_query.message.delete()
     await callback_query.message.answer(
         "Вы вернулись назад.",
-        reply_markup=keyboard
+        reply_markup=main_keyboard(user_id)
     )
 
 
 @router.callback_query(lambda c: c.data == "change_appointment")
 async def change_appointment(callback_query: CallbackQuery, state: FSMContext):
+    user_data = await state.get_data()
+    if "selected_appointment_id" in user_data:
+        appointment_id = user_data['selected_appointment_id']
+        with get_db() as db:
+            appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+            if appointment:
+                await state.update_data(selected_service_id=appointment.service_id)
+    
     await callback_query.message.answer(
         "Пожалуйста, выберите новую дату:",
         reply_markup=await SimpleCalendar(locale=await get_user_locale(callback_query.from_user)).start_calendar()
@@ -71,4 +104,4 @@ async def help_command(msg: types.Message):
         "Вот список доступных команд:\n\n"
         "/view_all_appointments - Посмотреть все записи (доступно только администраторам)"
     )
-    await msg.answer(help_text, reply_markup=keyboard)
+    await msg.answer(help_text, reply_markup=main_keyboard(msg.from_user.id))

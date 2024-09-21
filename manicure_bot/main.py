@@ -5,11 +5,13 @@ from aiogram import Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from manicure_bot.handlers.booking import router as booking_router
+from manicure_bot.handlers.appointment import router as booking_router
 from manicure_bot.handlers.change_booking import router as change_booking_router
 from manicure_bot.handlers.admin_commands import router as admin_router
+from manicure_bot.handlers.services import router as services_router
+from manicure_bot.handlers.contact import router as contact_router
 
-from manicure_bot.utils import keyboard
+from manicure_bot.keyboards import main_keyboard
 
 from manicure_bot.bot_instance import bot
 
@@ -24,7 +26,7 @@ async def start(msg: types.Message):
         "Добро пожаловать в бот для записи на маникюр!\n\n"
         "💅 Здесь вы можете легко и быстро записаться на маникюр.\n\n"
     )
-    await msg.answer(welcome_text, reply_markup=keyboard)
+    await msg.answer(welcome_text, reply_markup=main_keyboard(msg.from_user.id))
 
 
 # Запуск процесса поллинга новых апдейтов
@@ -32,6 +34,8 @@ async def main():
     dp.include_router(booking_router)
     dp.include_router(change_booking_router)
     dp.include_router(admin_router)
+    dp.include_router(services_router)
+    dp.include_router(contact_router)
     bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
