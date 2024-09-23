@@ -1,26 +1,20 @@
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from sqlalchemy import func
+
 from manicure_bot.database import Appointment
+
+time_slots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]
 
 
 def is_sunday(date):
     return date.weekday() == 6  # 6 - это воскресенье
 
 
-# Функция для получения занятых временных слотов на конкретную дату
-def get_booked_times(db, date):
-    booked_appointments = db.query(Appointment).filter(Appointment.date == date).all()
-    return {appointment.time.strftime("%H:%M") for appointment in booked_appointments}
-
-
-# Функция для создания клавиатуры с доступными временными слотами
-def build_time_slots_keyboard(available_time_slots):
-    builder = InlineKeyboardBuilder()
-    for time in available_time_slots:
-        builder.add(InlineKeyboardButton(
-            text=time,
-            callback_data=f"time_{time}"
-        ))
-    builder.adjust(4)
-    return builder
+def get_available_time_slots(date, db):
+    date_only = date.date()
+    booked_appointments = db.query(Appointment).filter(Appointment.date == date_only).all()
+    booked_times = [appointment.time.strftime("%H:%M") for appointment in booked_appointments]
+    available_times = [time for time in time_slots if time not in booked_times]
+    return available_times
