@@ -10,7 +10,7 @@ router = Router()
 
 
 # Обработчик команды "Услуги"
-@router.message(lambda message: message.text == "Услуги")
+@router.message(lambda message: message.text == "🌸Услуги")
 async def services_command(message: types.Message):
     with get_db() as db:
         services = db.query(Service).all()
@@ -34,10 +34,15 @@ async def service_callback(callback_query: types.CallbackQuery):
     service_id = int(callback_query.data.split("_")[1])
     
     with get_db() as db:
+        db.expire_all()
         service = db.query(Service).get(service_id)
-    
     if service:
-        text = f"<b>{service.name}</b>\n\n{service.description}\n\nЦена: {service.price} руб."
+        # Условие для отображения "Цена от" или "Цена"
+        if service.is_price_from == True:
+            price_text = f"Цена от: {service.price} руб."
+        else:
+            price_text = f"Цена: {service.price} руб."
+        text = f"<b>{service.name}</b>\n\n<i>{service.description}</i>\n\n{price_text}"
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Вернуться к услугам", callback_data="back_to_services")]
         ])

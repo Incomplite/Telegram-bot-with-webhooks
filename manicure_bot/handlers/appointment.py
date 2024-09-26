@@ -25,7 +25,7 @@ router = Router()
 router.include_router(registration_router)
 
 
-@router.message(lambda message: message.text == "Записаться")
+@router.message(lambda message: message.text == "📝Записаться")
 async def book_appointment(msg: types.Message):
     with get_db() as db:
         services = db.query(Service).all()
@@ -206,7 +206,7 @@ async def confirm_appointment(callback_query: CallbackQuery, state: FSMContext):
 
 
 # View and cancel the appointment
-@router.message(lambda message: message.text == "Мои записи")
+@router.message(lambda message: message.text == "📅Мои записи")
 async def view_appointment(msg: types.Message):
     with get_db() as db:
         user_id = msg.from_user.id

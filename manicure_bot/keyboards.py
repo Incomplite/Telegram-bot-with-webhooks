@@ -6,24 +6,32 @@ def main_keyboard(user_id):
     if user_id == settings.master_user_id:
         kb = [
             [
-                types.KeyboardButton(text="Записаться"),
-                types.KeyboardButton(text="Мои записи"),
-                types.KeyboardButton(text="Доступные команды")
+                types.KeyboardButton(text="🌸Услуги"),
+                types.KeyboardButton(text="📝Записаться"),
+                types.KeyboardButton(text="📅Мои записи")
             ],
             [
-                types.KeyboardButton(text="Услуги"),
-                types.KeyboardButton(text="Контакты")
+                types.KeyboardButton(text="💅Примеры работ"),
+                types.KeyboardButton(text="☎️Контакты")
+            ],
+            [
+                types.KeyboardButton(text="💡Идеи для маникюра"),
+                types.KeyboardButton(text="Доступные команды")
             ]
         ]
     else:
         kb = [
             [
-                types.KeyboardButton(text="Записаться"),
-                types.KeyboardButton(text="Мои записи")
+                types.KeyboardButton(text="🌸Услуги"),
+                types.KeyboardButton(text="📝Записаться"),
+                types.KeyboardButton(text="📅Мои записи")
             ],
             [
-                types.KeyboardButton(text="Услуги"),
-                types.KeyboardButton(text="Контакты")
+                types.KeyboardButton(text="💅Примеры работ"),
+                types.KeyboardButton(text="☎️Контакты")
+            ],
+            [
+                types.KeyboardButton(text="💡Идеи дизайна ногтей")
             ]
         ]
     return types.ReplyKeyboardMarkup(

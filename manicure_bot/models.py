@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Time, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, Time, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from manicure_bot.database.base import Base
@@ -23,6 +23,7 @@ class Service(Base):
     description = Column(String, nullable=True)
     price = Column(Integer, nullable=False)
     image_url = Column(String, nullable=True)
+    is_price_from = Column(Boolean, default=False)
 
     appointments = relationship('Appointment', back_populates='service')
 

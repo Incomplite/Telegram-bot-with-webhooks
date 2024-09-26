@@ -18,7 +18,7 @@ dp = Dispatcher(storage=MemoryStorage())
 @dp.message(CommandStart())
 async def start(msg: types.Message):
     welcome_text = (
-        "Добро пожаловать в бот для записи на маникюр!\n\n"
+        "🌸Добро пожаловать в бот для записи на маникюр!\n\n"
         "💅 Здесь вы можете легко и быстро записаться на маникюр.\n\n"
     )
     await msg.answer(welcome_text, reply_markup=main_keyboard(msg.from_user.id))
