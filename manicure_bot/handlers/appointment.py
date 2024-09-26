@@ -1,7 +1,6 @@
-import re
 from datetime import datetime, timedelta
 
-from aiogram import types, F, Router
+from aiogram import types, Router
 from aiogram.types import CallbackQuery, InlineKeyboardButton
 from aiogram_calendar import SimpleCalendarCallback, get_user_locale
 from aiogram.filters.callback_data import CallbackData
@@ -16,9 +15,10 @@ from manicure_bot.database.db import get_db
 from manicure_bot.handlers.states import Registration
 from manicure_bot.handlers.registration_user import request_user_info
 from manicure_bot.handlers.registration_user import router as registration_router
-from manicure_bot.utils import time_slots
+from manicure_bot.utils import delete_appointment_job
 from manicure_bot.custom_calendar import CustomSimpleCalendar
 from manicure_bot.utils import get_available_time_slots
+from manicure_bot.middlewares.scheduler import scheduler
 
 router = Router()
 
@@ -187,6 +187,11 @@ async def confirm_appointment(callback_query: CallbackQuery, state: FSMContext):
             action_message = "Ваша запись на маникюр подтверждена"
 
         db.commit()
+
+        # Добавляем задачу на удаление записи через 0.5 минуты (Нужно изменить)
+        appointment_id = appointment.id
+        deletion_time = datetime.now() + timedelta(minutes=0.5)
+        scheduler.add_job(delete_appointment_job, "date", run_date=deletion_time, args=[appointment_id])
 
         date_str = appointment.date.strftime("%d/%m/%Y")
         time_str = appointment.time.strftime("%H:%M")

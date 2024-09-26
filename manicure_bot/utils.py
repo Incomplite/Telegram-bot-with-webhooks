@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import func
 
 from manicure_bot.database import Appointment
-
+from manicure_bot.database.db import get_db
 time_slots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]
 
 
@@ -18,3 +18,16 @@ def get_available_time_slots(date, db):
     booked_times = [appointment.time.strftime("%H:%M") for appointment in booked_appointments]
     available_times = [time for time in time_slots if time not in booked_times]
     return available_times
+
+
+# Функция для удаления записи
+def delete_appointment_job(appointment_id: int):
+    print(f"Scheduled job to delete appointment with ID {appointment_id}")
+    with get_db() as db:
+        appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+        if appointment:
+            db.delete(appointment)
+            db.commit()
+            print(f"Appointment {appointment_id} has been deleted.")
+        else:
+            print(f"Appointment {appointment_id} not found.")

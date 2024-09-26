@@ -34,7 +34,10 @@ class CustomSimpleCalendar(SimpleCalendar):
         with get_db() as db:
             available_times = get_available_time_slots(date, db)
             if not available_times:
-                await query.answer("На выбранную дату все времена заняты. Пожалуйста, выберите другой день.", show_alert=True)
+                await query.answer(
+                    "На выбранную дату все времена заняты. Пожалуйста, выберите другой день.",
+                    show_alert=True
+                )
                 return False, None
         await query.message.delete_reply_markup()  # removing inline keyboard
         return True, date

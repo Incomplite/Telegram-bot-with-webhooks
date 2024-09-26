@@ -6,6 +6,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 
 from manicure_bot.handlers.states import Registration
+from manicure_bot.database.db import get_db
+from manicure_bot.database import Service
 
 router = Router()
 
@@ -38,12 +40,17 @@ async def handle_name(msg: types.Message, state: FSMContext):
     phone_number = user_data['phone_number']
     name = user_data['name']
 
+    with get_db() as db:
+        service = db.query(Service).get(user_data['selected_service_id'])
+        service_name = service.name
+        service_price = service.price
+
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Подтвердить запись", callback_data="confirm_appointment"))
     builder.add(InlineKeyboardButton(text="Изменить данные", callback_data="change_data"))
 
     answer_message = (
-        f"Проверьте ваши данные:\n\nДата: {date_str}\nВремя: {time_str}\nИмя: {name}\nТелефон: {phone_number}"
+        f"Проверьте ваши данные:\n\nУслуга: {service_name}\nДата: {date_str}\nВремя: {time_str}\nИмя: {name}\nТелефон: {phone_number}\nЦена: {service_price} руб."
         "\n\nЕсли все верно, нажмите 'Подтвердить запись'.\nЕсли нужно изменить данные, нажмите 'Изменить данные'."
     )
 
