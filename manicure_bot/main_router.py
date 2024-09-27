@@ -5,6 +5,7 @@ from manicure_bot.handlers.change_appointment import router as change_booking_ro
 from manicure_bot.handlers.admin_commands import router as admin_router
 from manicure_bot.handlers.services import router as services_router
 from manicure_bot.handlers.contact import router as contact_router
+from manicure_bot.handlers.examples_of_works import router as examples_of_works_router
 
 router = Router()
 
@@ -13,3 +14,4 @@ router.include_router(change_booking_router)
 router.include_router(admin_router)
 router.include_router(services_router)
 router.include_router(contact_router)
+router.include_router(examples_of_works_router)

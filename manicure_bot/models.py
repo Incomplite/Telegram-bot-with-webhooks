@@ -40,6 +40,13 @@ class Appointment(Base):
     services = relationship('Service', secondary='appointment_service_association', back_populates='appointments')
 
 
+class Photo(Base):
+    __tablename__ = 'photos'
+
+    id = Column(Integer, primary_key=True, index=True)
+    photo_url = Column(String, nullable=False)
+
+
 # Ассоциативная таблица для связи многие-ко-многим между Appointment и Service
 class AppointmentServiceAssociation(Base):
     __tablename__ = 'appointment_service_association'

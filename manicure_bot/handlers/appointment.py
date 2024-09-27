@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from aiogram import types, Router
-from aiogram.types import CallbackQuery, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton
 from aiogram_calendar import SimpleCalendarCallback, get_user_locale
 from aiogram.filters.callback_data import CallbackData
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -94,7 +94,7 @@ async def confirm_services(callback_query: types.CallbackQuery, state: FSMContex
 
 
 @router.callback_query(SimpleCalendarCallback.filter())
-async def process_simple_calendar(callback_query: CallbackQuery, callback_data: CallbackData, state: FSMContext):
+async def process_simple_calendar(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
     with get_db() as db:
         today = datetime.now()
         start_date = today + timedelta(days=1)  # послезавтра
@@ -134,7 +134,7 @@ async def process_simple_calendar(callback_query: CallbackQuery, callback_data: 
 
 
 @router.callback_query(lambda c: c.data.startswith("time_"))
-async def select_time(callback_query: CallbackQuery, state: FSMContext):
+async def select_time(callback_query: types.CallbackQuery, state: FSMContext):
     with get_db() as db:
         time_str = callback_query.data.split("_")[1]
         time_obj = datetime.strptime(time_str, "%H:%M").time()
@@ -190,13 +190,13 @@ async def confirm_appointment_with_user_data(msg: types.Message, state: FSMConte
 
 
 @router.callback_query(lambda c: c.data == "change_data")
-async def change_data(callback_query: CallbackQuery, state: FSMContext):
+async def change_data(callback_query: types.CallbackQuery, state: FSMContext):
     await request_user_info(callback_query.message, state)
     await callback_query.message.edit_reply_markup(reply_markup=None)
 
 
 @router.callback_query(lambda c: c.data == "confirm_appointment")
-async def confirm_appointment(callback_query: CallbackQuery, state: FSMContext):
+async def confirm_appointment(callback_query: types.CallbackQuery, state: FSMContext):
     with get_db() as db:
         user_data = await state.get_data()
         user_id = callback_query.from_user.id
