@@ -25,7 +25,7 @@ class Service(Base):
     image_url = Column(String, nullable=True)
     is_price_from = Column(Boolean, default=False)
 
-    appointments = relationship('Appointment', back_populates='service')
+    appointments = relationship('Appointment', secondary='appointment_service_association', back_populates='services')
 
 
 class Appointment(Base):
@@ -33,9 +33,24 @@ class Appointment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey(User.id, name='fk_appointments_user_id'), index=True)
-    service_id = Column(Integer, ForeignKey(Service.id, name='fk_appointments_service_id'), index=True)
     date = Column(Date)
     time = Column(Time)
 
     user = relationship('User', back_populates='appointments')
-    service = relationship('Service', back_populates='appointments')
+    services = relationship('Service', secondary='appointment_service_association', back_populates='appointments')
+
+
+# Ассоциативная таблица для связи многие-ко-многим между Appointment и Service
+class AppointmentServiceAssociation(Base):
+    __tablename__ = 'appointment_service_association'
+
+    appointment_id = Column(
+        Integer,
+        ForeignKey(Appointment.id, name='fk_appointment_service_association_appointment_id'),
+        primary_key=True
+    )
+    service_id = Column(
+        Integer,
+        ForeignKey(Service.id, name='fk_appointment_service_association_service_id'),
+        primary_key=True
+    )

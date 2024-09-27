@@ -1,5 +1,5 @@
 from .base import Base
-from manicure_bot.models import User, Appointment, Service
+from manicure_bot.models import User, Appointment, Service, AppointmentServiceAssociation
 
 
 __all__ = (
@@ -7,4 +7,5 @@ __all__ = (
     "User"
     "Appointment"
     "Service"
+    "AppointmentServiceAssociation"
 )

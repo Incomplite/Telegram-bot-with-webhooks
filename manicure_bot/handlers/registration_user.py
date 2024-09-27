@@ -41,16 +41,16 @@ async def handle_name(msg: types.Message, state: FSMContext):
     name = user_data['name']
 
     with get_db() as db:
-        service = db.query(Service).get(user_data['selected_service_id'])
-        service_name = service.name
-        service_price = service.price
+        services = db.query(Service).filter(Service.id.in_(user_data['selected_services'])).all()
+        service_names = ", ".join([service.name for service in services])
+        service_prices = sum([service.price for service in services])
 
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Подтвердить запись", callback_data="confirm_appointment"))
     builder.add(InlineKeyboardButton(text="Изменить данные", callback_data="change_data"))
 
     answer_message = (
-        f"Проверьте ваши данные:\n\nУслуга: {service_name}\nДата: {date_str}\nВремя: {time_str}\nИмя: {name}\nТелефон: {phone_number}\nЦена: {service_price} руб."
+        f"Проверьте ваши данные:\n\nУслуга: {service_names}\nДата: {date_str}\nВремя: {time_str}\nИмя: {name}\nТелефон: {phone_number}\nЦена: {service_prices} руб."
         "\n\nЕсли все верно, нажмите 'Подтвердить запись'.\nЕсли нужно изменить данные, нажмите 'Изменить данные'."
     )
 

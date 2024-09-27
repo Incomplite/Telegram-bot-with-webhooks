@@ -32,22 +32,63 @@ async def book_appointment(msg: types.Message):
 
         keyboard = InlineKeyboardBuilder()
         for service in services:
-            button = InlineKeyboardButton(text=service.name, callback_data=f"select_service_{service.id}")
+            button = InlineKeyboardButton(text=service.name, callback_data=f"toggle_service_{service.id}")
             keyboard.add(button)
-
+        
+        confirm_button = InlineKeyboardButton(text="✅Подтвердить", callback_data="confirm_services")
         back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
-        keyboard.add(back_button)
+        keyboard.add(confirm_button, back_button)
 
         keyboard.adjust(1)
-    
-        await msg.answer("Выберите услугу для записи:", reply_markup=keyboard.as_markup())
+        await msg.answer("Выберите услуги для записи:", reply_markup=keyboard.as_markup())
 
 
-# Обработчик для выбора услуги для записи
-@router.callback_query(lambda callback_query: callback_query.data.startswith("select_service_"))
-async def select_service(callback_query: types.CallbackQuery, state: FSMContext):
+# Обработчик для выбора/отмены услуги
+@router.callback_query(lambda callback_query: callback_query.data.startswith("toggle_service_"))
+async def toggle_service(callback_query: types.CallbackQuery, state: FSMContext):
     service_id = int(callback_query.data.split("_")[2])
-    await state.update_data(selected_service_id=service_id)
+    user_data = await state.get_data()
+    selected_services = user_data.get("selected_services", [])
+
+    if service_id in selected_services:
+        selected_services.remove(service_id)
+    else:
+        selected_services.append(service_id)
+
+    await state.update_data(selected_services=selected_services)
+
+    # Обновляем клавиатуру с учетом выбранных услуг
+    with get_db() as db:
+        services = db.query(Service).all()
+        keyboard = InlineKeyboardBuilder()
+        for service in services:
+            if service.id in selected_services:
+                button_text = f"✅{service.name}"
+            else:
+                button_text = service.name
+            button = InlineKeyboardButton(text=button_text, callback_data=f"toggle_service_{service.id}")
+            keyboard.add(button)
+
+        confirm_button = InlineKeyboardButton(text="✅Подтвердить", callback_data="confirm_services")
+        back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
+        keyboard.add(confirm_button, back_button)
+
+        keyboard.adjust(1)
+
+        await callback_query.message.edit_reply_markup(reply_markup=keyboard.as_markup())
+    await callback_query.answer("Услуга обновлена")
+
+
+# Обработчик для подтверждения выбора услуг
+@router.callback_query(lambda callback_query: callback_query.data.startswith("confirm_services"))
+async def confirm_services(callback_query: types.CallbackQuery, state: FSMContext):
+    user_data = await state.get_data()
+    selected_services = user_data.get("selected_services", [])
+
+    if not selected_services:
+        await callback_query.answer("Вы не выбрали ни одной услуги", show_alert=True)
+        return
+
     await callback_query.message.edit_reply_markup(reply_markup=None)
     await callback_query.message.answer("Пожалуйста, выберите дату:", reply_markup=await CustomSimpleCalendar(locale=await get_user_locale(callback_query.from_user)).start_calendar())
 
@@ -128,16 +169,16 @@ async def confirm_appointment_with_user_data(msg: types.Message, state: FSMConte
     name = user.name
 
     with get_db() as db:
-        service = db.query(Service).get(user_data['selected_service_id'])
-        service_name = service.name
-        service_price = service.price
+        services = db.query(Service).filter(Service.id.in_(user_data['selected_services'])).all()
+        service_names = ", ".join([service.name for service in services])
+        service_prices = sum([service.price for service in services])
 
     builder = InlineKeyboardBuilder()
-    builder.add(InlineKeyboardButton(text="✅ Подтвердить запись", callback_data="confirm_appointment"))
+    builder.add(InlineKeyboardButton(text="✅Подтвердить запись", callback_data="confirm_appointment"))
     builder.add(InlineKeyboardButton(text="Изменить данные", callback_data="change_data"))
 
     answer_message = (
-        f"Проверьте ваши данные:\n\nУслуга: {service_name}\nДата: {date_str}\nВремя: {time_str}\nИмя: {name}\nТелефон: {phone_number}\nЦена: {service_price} руб."
+        f"Проверьте ваши данные:\n\nУслуга: {service_names}\nДата: {date_str}\nВремя: {time_str}\nИмя: {name}\nТелефон: {phone_number}\nЦена: {service_prices} руб."
         "\n\nЕсли все верно, нажмите 'Подтвердить запись'.\nЕсли нужно изменить данные, нажмите 'Изменить данные'."
     )
 
@@ -168,20 +209,23 @@ async def confirm_appointment(callback_query: CallbackQuery, state: FSMContext):
             user.name = user_data['name']
             user.phone_number = user_data['phone_number']
 
+        selected_services_ids = user_data['selected_services']
+        selected_services = db.query(Service).filter(Service.id.in_(selected_services_ids)).all()
+
         if "selected_appointment_id" in user_data:
             appointment_id = user_data["selected_appointment_id"]
             appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
             if appointment:
                 appointment.date = user_data['selected_date']
                 appointment.time = user_data['selected_time']
-                appointment.service_id = user_data['selected_service_id']
+                appointment.services = selected_services
                 action_message = "Ваша запись была успешно изменена"
         else:
             appointment = Appointment(
                 user_id=user_id,
                 date=user_data['selected_date'],
                 time=user_data['selected_time'],
-                service_id=user_data['selected_service_id']
+                services=selected_services
             )
             db.add(appointment)
             action_message = "Ваша запись на маникюр подтверждена"
@@ -189,9 +233,9 @@ async def confirm_appointment(callback_query: CallbackQuery, state: FSMContext):
         db.commit()
 
         # Добавляем задачу на удаление записи через 0.5 минуты (Нужно изменить)
-        appointment_id = appointment.id
-        deletion_time = datetime.now() + timedelta(minutes=0.5)
-        scheduler.add_job(delete_appointment_job, "date", run_date=deletion_time, args=[appointment_id])
+        # appointment_id = appointment.id
+        # deletion_time = datetime.now() + timedelta(minutes=0.5)
+        # scheduler.add_job(delete_appointment_job, "date", run_date=deletion_time, args=[appointment_id])
 
         date_str = appointment.date.strftime("%d/%m/%Y")
         time_str = appointment.time.strftime("%H:%M")
@@ -202,28 +246,4 @@ async def confirm_appointment(callback_query: CallbackQuery, state: FSMContext):
         # await bot.send_message(chat_id=settings.master_chat_id, text=master_message)
         await state.clear()
 
-        await callback_query.message.edit_reply_markup(reply_markup=None)
-
-
-# View and cancel the appointment
-@router.message(lambda message: message.text == "📅Мои записи")
-async def view_appointment(msg: types.Message):
-    with get_db() as db:
-        user_id = msg.from_user.id
-        appointments = db.query(Appointment).filter(Appointment.user_id == user_id).all()
-        if appointments:
-            builder = InlineKeyboardBuilder()
-            for appointment in appointments:
-                date_str = appointment.date.strftime("%d/%m/%Y")
-                time_str = appointment.time.strftime("%H:%M")
-                builder.add(
-                    InlineKeyboardButton(
-                        text=f"{date_str} в {time_str}",
-                        callback_data=f"appointment_{appointment.id}"
-                    )
-                )
-            builder.add(InlineKeyboardButton(text="Назад", callback_data="back_to_main"))
-            builder.adjust(1)
-            await msg.answer(f'Ваши запиcи:', reply_markup=builder.as_markup())
-        else:
-            await msg.answer("У вас нет активных записей.")
+    await callback_query.message.edit_reply_markup(reply_markup=None)
