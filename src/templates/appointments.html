@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}
+Панель просмотра заявок
+{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="/static/css/appointments.css">
+{% endblock %}
+
+{% block content %}
+<main>
+    <h1>{{ title_h1 }}</h1>
+
+    {% if access %}
+    <table id="appointments-table">
+        <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Время</th>
+            <th>Услуги</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for appointment in appointments %}
+        <tr>
+            <td>{{ appointment.date }}</td>
+            <td>{{ appointment.time }}</td>
+            <td>
+                {% for service in appointment.services %}  {# Добавлен цикл для отображения нескольких услуг #}
+                    {{ service.name }}{% if not loop.last %}, {% endif %}  {# Добавлено разделение услуг запятой #}
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>{{ message }}</p>
+    {% endif %}
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/appointments.js"></script>
+{% endblock %}
