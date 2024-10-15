@@ -1,11 +1,7 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
-from sqlalchemy import func
+from aiogram.types import Message
 
 from src.database import Appointment, Photo
 from src.database.db import get_db
-
-from aiogram.types import Message
 from src.keyboards import main_keyboard
 
 time_slots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]
@@ -38,7 +34,7 @@ def delete_appointment_job(appointment_id: int):
 # Функция получения фотографий из базы данных
 def get_photos():
     with get_db() as db:
-        photos = db.query(Photo).all() 
+        photos = db.query(Photo).all()
     return photos
 
 

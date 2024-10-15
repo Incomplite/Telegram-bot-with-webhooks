@@ -1,8 +1,8 @@
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, Message
 
-from src.keyboards import main_keyboard, admin_keyboard
 from src.config import settings
+from src.keyboards import admin_keyboard, main_keyboard
 
 admin_router = Router()
 

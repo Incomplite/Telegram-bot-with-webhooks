@@ -1,29 +1,36 @@
-document.getElementById('appointmentForm').addEventListener('submit', function (e) {
+document.getElementById('appointment-form').addEventListener('submit', function (e) {
     e.preventDefault();
 
     const name = document.getElementById('name').value;
 
-    // Get all selected services and join them into a string
-    const serviceSelect = document.getElementById('service');
-    const selectedServices = Array.from(serviceSelect.selectedOptions).map(option => option.text);
+    const selectedServices = Array.from(document.querySelectorAll('.service-checkbox:checked')).map(checkbox => checkbox.nextElementSibling.textContent);
+
+    if (selectedServices.length === 0) {
+        alert("Необходимо выбрать хотя бы одну услугу.");
+        return;
+    }
+
     const serviceText = selectedServices.map(service => service.toLowerCase()).join(', ');
 
     const date = document.getElementById('date').value;
     const time = document.getElementById('time').value;
 
-    const popupMessage = `${name}, вы записаны на следующие услуги: ${serviceText} ${date} в ${time}.`;
-    document.getElementById('popupMessage').textContent = popupMessage;
+    const formattedDate = new Date(date).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    document.getElementById('popup').style.display = 'flex';
+    const confirmationMessage = `${name}, вы записаны на ${formattedDate} в ${time} на следующие услуги: ${serviceText}.`;
+    document.getElementById('confirmationMessage').innerHTML = confirmationMessage;
+      const modal = document.getElementById('confirmationModal');
+      modal.style.display = 'block';
+      setTimeout(() => {
+        modal.classList.add('show');
+      }, 10);
 });
 
-document.getElementById('closePopup').addEventListener('click', async function () {
+document.getElementById('closeModal').addEventListener('click', async function () {
     const name = document.getElementById('name').value.trim();
 
-    // Get all selected services and join them into a string for storage
-    const serviceSelect = document.getElementById('service');
-    const selectedServices = Array.from(serviceSelect.selectedOptions).map(option => option.text);
-    const serviceText = selectedServices.join(', ');
+    // Получаем все выбранные услуги через чекбоксы для хранения
+    const selectedServices = Array.from(document.querySelectorAll('.service-checkbox:checked')).map(checkbox => checkbox.nextElementSibling.textContent);
 
     const date = document.getElementById('date').value;
     const time = document.getElementById('time').value;
@@ -73,38 +80,6 @@ document.getElementById('closePopup').addEventListener('click', async function (
     }
 });
 
-// Анимация появления элементов при загрузке страницы
-function animateElements() {
-    const elements = document.querySelectorAll('h1, .form-group, .btn');
-    elements.forEach((el, index) => {
-        setTimeout(() => {
-            el.style.opacity = '1';
-            el.style.transform = 'translateY(0)';
-        }, 100 * index);
-    });
-}
-
-// Стили для анимации
-var styleSheet = document.styleSheets[0];
-styleSheet.insertRule(`
-    h1, .form-group, .btn {
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.5s ease, transform 0.5s ease;
-    }
-`, styleSheet.cssRules.length);
-
-// Плавное появление страницы при загрузке
-window.addEventListener('load', function () {
-    document.body.style.opacity = '1';
-    animateElements();
-});
-
-styleSheet.insertRule(`
-    body {
-        opacity: 0;
-        transition: opacity 0.5s ease;
-`, styleSheet.cssRules.length);
 
 // Добавляем текущую дату в поле даты
 document.addEventListener('DOMContentLoaded', (event) => {

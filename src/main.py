@@ -1,5 +1,4 @@
 import logging
-
 from contextlib import asynccontextmanager
 
 from aiogram.types import Update
@@ -7,11 +6,12 @@ from aiogram.types import Update
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
+from src.api.router import router as router_api
 from src.bot.bot_instance import bot, dp, start_bot, stop_bot
 from src.config import settings
 from src.main_router import router as main_router
+from src.middlewares.scheduler import SchedulerMiddleware
 from src.pages.router import router as router_pages
-from src.api.router import router as router_api
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -21,6 +21,7 @@ async def lifespan(app: FastAPI):
     # Код, выполняющийся при запуске приложения
     logging.info("Starting bot setup...")
     dp.include_router(main_router)
+    dp.update.outer_middleware(SchedulerMiddleware())
     await start_bot()
     webhook_url = settings.get_webhook_url()  # Получаем URL вебхука
     await bot.set_webhook(

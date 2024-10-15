@@ -9,43 +9,39 @@
 {% endblock %}
 
 {% block content %}
-<main>
-    <form id="appointmentForm">
-        <h1>Запись на услуги</h1>
+<div class="container">
+    <h1>Запись на услуги</h1>
+    <form id="appointment-form">
 
-        <div class="form-group">
             <label for="name">Имя</label>
             <input type="text" id="name" name="name" value="{{ first_name }}" required placeholder="Введите ваше имя">
-        </div>
 
-        <div class="form-group">
-            <label for="service">Услуга</label>
-            <select id="service" name="service" multiple required>
-                <option value="" disabled>Выберите услугу</option>
-                <!-- Цикл для вывода списка услуг -->
+            <label>Услуги</label>
+            <div class="services-container">
                 {% for service in services %}
-                <option value="{{ service.id }}_{{ service.name }}">{{ service.name }}</option>
+                <input type="checkbox" id="{{ service.id }}" name="services" value="{{ service.id }}" class="service-checkbox">
+                <label for="{{ service.id }}" class="service-label">{{ service.name }}</label>
                 {% endfor %}
-            </select>
-        </div>
+            </div>
 
-        <div class="form-group">
             <label for="date">Дата услуги</label>
             <input type="date" id="date" name="date" required>
-        </div>
 
-        <div class="form-group">
             <label for="time">Время услуги</label>
             <input type="time" id="time" name="time" required>
-        </div>
 
         <input type="hidden" id="user_id" value="{{ user_id }}">
         <button type="submit" class="btn">Записаться</button>
     </form>
-</main>
+</div>
 
-<!-- Попап -->
-{% include 'include/popup.html' %}
+<div id="confirmationModal" class="modal">
+    <div class="modal-content">
+        <h2>Спасибо за вашу запись!</h2>
+        <p id="confirmationMessage"></p>
+        <button id="closeModal">Закрыть</button>
+    </div>
+</div>
 
 {% endblock %}
 

@@ -4,10 +4,10 @@ from fastapi.responses import JSONResponse
 
 from src.api.schemas import AppointmentData
 from src.bot.bot_instance import bot
-from src.keyboards import main_keyboard
 from src.config import settings
 from src.database import Appointment, Service
 from src.database.db import get_db
+from src.keyboards import main_keyboard
 
 router = APIRouter(prefix='/api', tags=['API'])
 

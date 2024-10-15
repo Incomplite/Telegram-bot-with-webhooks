@@ -1,11 +1,10 @@
-from aiogram import Router, F
+from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from src.utils import greet_user
-
 from src.database import User
 from src.database.db import get_db
+from src.utils import greet_user
 
 user_router = Router()
 
