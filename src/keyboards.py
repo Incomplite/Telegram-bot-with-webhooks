@@ -40,7 +40,7 @@ def back_keyboard() -> ReplyKeyboardMarkup:
 
 
 def admin_keyboard(user_id: int) -> InlineKeyboardMarkup:
-    url_appointments = f"{settings.BASE_SITE}/admin?admin_id={user_id}"
+    url_appointments = f"{settings.BASE_SITE}/admin/appointments?admin_id={user_id}"
     kb = InlineKeyboardBuilder()
     kb.button(text="🏠 На главную", callback_data="back_home")
     kb.button(text="📝 Смотреть заявки", web_app=WebAppInfo(url=url_appointments))

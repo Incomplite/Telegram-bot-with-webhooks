@@ -1,6 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
+
+from sqlalchemy.orm import Session
 
 from src.api.schemas import AppointmentData
 from src.bot.bot_instance import bot
@@ -45,6 +47,7 @@ async def create_appointment(request: Request):
     with get_db() as db:
         appointment = Appointment(
             user_id=validated_data.user_id,
+            name=validated_data.name,
             date=validated_data.appointment_date,
             time=validated_data.appointment_time
         )
@@ -66,3 +69,13 @@ async def create_appointment(request: Request):
 
     # Возвращаем успешный ответ
     return {"message": "success!"}
+
+@router.delete("/appointment/{appointment_id}")
+async def delete_appointment(appointment_id: int):
+    with get_db() as db:
+        appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+        if appointment:
+            db.delete(appointment)
+            db.commit()
+            return JSONResponse(status_code=200, content={"message": "Запись удалена"})
+        return JSONResponse(status_code=404, content={"message": "Запись не найдена"})

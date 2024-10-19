@@ -33,6 +33,7 @@ class Appointment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey(User.id, name='fk_appointments_user_id'), index=True)
+    name = Column(String, nullable=False)
     date = Column(Date, nullable=False)
     time = Column(Time, nullable=False)
 

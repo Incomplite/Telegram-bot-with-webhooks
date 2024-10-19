@@ -8,36 +8,61 @@
 {% endblock %}
 
 {% block content %}
-<main>
+<div class="container">
     <h1>{{ title_h1 }}</h1>
 
     {% if access %}
-    <table id="appointments-table">
-        <thead>
-        <tr>
-            <th>Дата</th>
-            <th>Время</th>
-            <th>Услуги</th>
-        </tr>
-        </thead>
-        <tbody>
+    <button id="toggleFilters" class="toggle-filters-btn">Показать фильтры</button>
+
+    <div id="filtersContainer" class="filters-container">
+      <div class="filters">
+        <div class="filter-group">
+          <label for="searchInput">Поиск:</label>
+          <input type="text" id="searchInput" class="search-input" placeholder="Поиск по имени или услуге">
+        </div>
+        <div class="filter-group">
+          <label for="dateFilter">Дата:</label>
+          <input type="date" id="dateFilter">
+        </div>
+        <div class="filter-group">
+          <label>Услуги:</label>
+          <div class="service-checkboxes">
+            {% for service in services %}
+            <label class="service-checkbox">
+              <input type="checkbox" name="service" value="{{ service.name }}">
+              <span class="checkmark"></span>
+              {{ service.name }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="appointment-list" id="appointmentList">
         {% for appointment in appointments %}
-        <tr>
-            <td>{{ appointment.date }}</td>
-            <td>{{ appointment.time }}</td>
-            <td>
-                {% for service in appointment.services %}  {# Добавлен цикл для отображения нескольких услуг #}
-                    {{ service.name }}{% if not loop.last %}, {% endif %}  {# Добавлено разделение услуг запятой #}
-                {% endfor %}
-            </td>
-        </tr>
+        <div class="appointment-card" data-id="{{ appointment.id }}">
+            <h2>{{ appointment.name }}</h2>
+            <p><strong>Дата:</strong> {{ appointment.date }}</p>
+            <p><strong>Время:</strong> {{ appointment.time }}</p>
+            <p class="services"><strong>Услуги:</strong> {{ appointment.services | map(attribute='name') | join(', ') }}</p>
+            <button class="delete-button" data-id="{{ appointment.id }}">✕</button>
+        </div>
         {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>{{ message }}</p>
-    {% endif %}
-</main>
+    </div>
+</div>
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <p>Вы точно хотите удалить эту запись?</p>
+            <div class="modal-buttons">
+                <button id="confirmDelete" class="modal-button confirm-delete">Да, удалить</button>
+                <button id="cancelDelete" class="modal-button cancel-delete">Отмена</button>
+            </div>
+        </div>
+    </div>
+{% else %}
+<p>{{ message }}</p>
+{% endif %}
 {% endblock %}
 {% block scripts %}
 <script src="/static/js/appointments.js"></script>

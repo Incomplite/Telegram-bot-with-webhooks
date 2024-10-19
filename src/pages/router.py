@@ -28,7 +28,7 @@ async def get_service_form(request: Request, user_id: int = None, first_name: st
     data_page = {"request": request,
                  "user_id": user_id,
                  "first_name": first_name,
-                 "title": "Запись на маникюр - Элегантная парикмахерская",
+                 "title": "Запись на маникюр - Бот",
                  "services": services}
     return templates.TemplateResponse("form.html", data_page)
 
@@ -49,19 +49,21 @@ async def get_user_appointments(request: Request, user_id: int = None):
                 data_page['appointments'] = appointments
                 return templates.TemplateResponse("appointments.html", data_page)
             else:
-                data_page['message'] = 'У вас нет заявок!'
+                data_page['message'] = 'У вас нет записей!'
                 return templates.TemplateResponse("appointments.html", data_page)
 
 
-@router.get("/admin", response_class=HTMLResponse)
+@router.get("/admin/appointments", response_class=HTMLResponse)
 async def get_admin_panel(request: Request, admin_id: int = None):
     data_page = {"request": request, "access": False, 'title_h1': "Панель администратора"}
     if admin_id is None or admin_id != settings.ADMIN_USER_ID:
-        data_page['message'] = 'У вас нет прав для получения информации о заявках!'
+        data_page['message'] = 'У вас нет прав для получения информации о записях!'
         return templates.TemplateResponse("appointments.html", data_page)
     else:
         data_page['access'] = True
         with get_db() as db:
             appointments = db.query(Appointment).options(joinedload(Appointment.services)).all()
+            services = db.query(Service).all()
         data_page['appointments'] = appointments
+        data_page['services'] = services
         return templates.TemplateResponse("appointments.html", data_page)

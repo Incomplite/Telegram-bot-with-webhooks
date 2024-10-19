@@ -7,7 +7,7 @@ from src.keyboards import admin_keyboard, main_keyboard
 admin_router = Router()
 
 
-@admin_router.message(F.text == '🔑 Админ панель', F.from_user.id.in_([settings.ADMIN_USER_ID]))
+@admin_router.message(F.text == '🔑Админ панель', F.from_user.id.in_([settings.ADMIN_USER_ID]))
 async def admin_panel(message: Message):
     await message.answer(
         f"Здравствуйте, <b>{message.from_user.full_name}</b>!\n\n"
