@@ -4,7 +4,8 @@ from src.models import (
     Appointment,
     Service,
     Photo,
-    AppointmentServiceAssociation,
+    AvailableTimeSlot,
+    AppointmentServiceAssociation
 )
 
 
@@ -14,5 +15,6 @@ __all__ = (
     "Appointment",
     "Service",
     "Photo",
+    "AvailableTimeSlot",
     "AppointmentServiceAssociation"
 )

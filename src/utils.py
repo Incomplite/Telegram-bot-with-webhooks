@@ -19,18 +19,6 @@ def get_available_time_slots(date, db):
     return available_times
 
 
-# Функция для удаления записи
-def delete_appointment_job(appointment_id: int):
-    with get_db() as db:
-        appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
-        if appointment:
-            db.delete(appointment)
-            db.commit()
-            print(f"Запись {appointment_id} была удалена.")
-        else:
-            print(f"Запись {appointment_id} не найдена.")
-
-
 # Функция получения фотографий из базы данных
 def get_photos():
     with get_db() as db:

@@ -28,7 +28,9 @@
             <input type="date" id="date" name="date" required>
 
             <label for="time">Время услуги</label>
-            <input type="time" id="time" name="time" required>
+            <select id="time" name="time" required>
+                <option value="">Выберите время</option>
+            </select>
 
         <input type="hidden" id="user_id" value="{{ user_id }}">
         <button type="submit" class="btn">Записаться</button>

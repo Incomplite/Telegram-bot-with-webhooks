@@ -1,3 +1,5 @@
+import json
+
 from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String, Time
 from sqlalchemy.orm import relationship
 
@@ -46,6 +48,22 @@ class Photo(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     photo_url = Column(String, nullable=False)
+
+
+class AvailableTimeSlot(Base):
+    __tablename__ = 'available_time_slots'
+
+    id = Column(Integer, primary_key=True)
+    date = Column(Date, nullable=False)
+    time_slots = Column(String, nullable=False)  # JSON-строка для хранения списка
+
+    def get_time_slots(self):
+        # Декодируем JSON-строку в список
+        return json.loads(self.time_slots)
+
+    def set_time_slots(self, slots):
+        # Кодируем список в JSON-строку
+        self.time_slots = json.dumps(slots)
 
 
 # Ассоциативная таблица для связи многие-ко-многим между Appointment и Service

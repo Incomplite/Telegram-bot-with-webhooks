@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function deleteAppointment(id) {
-      // New: Make an API call to delete the appointment from the database
       fetch(`/api/appointment/${id}`, {
         method: 'DELETE',
       })

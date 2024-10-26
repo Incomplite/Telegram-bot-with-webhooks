@@ -26,6 +26,39 @@ document.getElementById('appointment-form').addEventListener('submit', function 
       }, 10);
 });
 
+document.getElementById('date').addEventListener('change', async function () {
+    const date = this.value;
+
+    try {
+        const response = await fetch(`/api/available-slots/${date}`);
+        const timeInput = document.getElementById('time');
+
+        // Очистим поле времени
+        timeInput.innerHTML = '';
+
+        if (response.status === 404) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.text = 'Нет доступных времен';
+            timeInput.appendChild(option);
+            timeInput.disabled = true;
+        } else {
+            const data = await response.json();
+            if (data.slots.length > 0) {
+                data.slots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot;
+                    option.text = slot;
+                    timeInput.appendChild(option);
+                });
+                timeInput.disabled = false;
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка получения доступных времен:', error);
+    }
+});
+
 document.getElementById('closeModal').addEventListener('click', async function () {
     const name = document.getElementById('name').value.trim();
 

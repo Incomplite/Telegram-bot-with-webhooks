@@ -38,6 +38,8 @@ async def get_user_appointments(request: Request, user_id: int = None):
     data_page = {"request": request, "access": False, 'title_h1': "Мои записи"}
     with get_db() as db:
         user_check = db.query(User).filter(User.id == user_id).first()
+        services = db.query(Service).all()
+        data_page['services'] = services
 
         if user_id is None or user_check is None:
             data_page['message'] = 'Пользователь не указан или не найден в базе данных'
@@ -67,3 +69,15 @@ async def get_admin_panel(request: Request, admin_id: int = None):
         data_page['appointments'] = appointments
         data_page['services'] = services
         return templates.TemplateResponse("appointments.html", data_page)
+    
+
+# Отображение страницы администратора
+@router.get("/admin/set-time-slots", response_class=HTMLResponse)
+async def get_admin_interface(request: Request, admin_id: int = None):
+    data_page = {"request": request, "access": False,"title": "Управление доступными временами"}
+    if admin_id is None or admin_id != settings.ADMIN_USER_ID:
+        data_page['message'] = 'У вас нет прав!'
+        return templates.TemplateResponse("time_slots.html", data_page)
+    else:
+        data_page['access'] = True
+        return templates.TemplateResponse("time_slots.html", data_page)

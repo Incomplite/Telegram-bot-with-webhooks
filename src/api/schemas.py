@@ -11,3 +11,8 @@ class AppointmentData(BaseModel):
     appointment_date: date = Field(..., description="Дата назначения")
     appointment_time: time = Field(..., description="Время назначения")
     user_id: int = Field(..., description="ID пользователя Telegram")
+
+
+class Schedule(BaseModel):
+    date: date
+    slots: List[str]

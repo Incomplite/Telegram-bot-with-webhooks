@@ -16,10 +16,12 @@
 
     <div id="filtersContainer" class="filters-container">
       <div class="filters">
+        {% if title_h1 == "Панель администратора" %}
         <div class="filter-group">
           <label for="searchInput">Поиск:</label>
           <input type="text" id="searchInput" class="search-input" placeholder="Поиск по имени или услуге">
         </div>
+        {% endif %}
         <div class="filter-group">
           <label for="dateFilter">Дата:</label>
           <input type="date" id="dateFilter">
@@ -46,7 +48,9 @@
             <p><strong>Дата:</strong> {{ appointment.date }}</p>
             <p><strong>Время:</strong> {{ appointment.time }}</p>
             <p class="services"><strong>Услуги:</strong> {{ appointment.services | map(attribute='name') | join(', ') }}</p>
+            {% if title_h1 == "Панель администратора" %}
             <button class="delete-button" data-id="{{ appointment.id }}">✕</button>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

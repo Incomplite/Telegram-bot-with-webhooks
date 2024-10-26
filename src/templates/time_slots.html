@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="/static/css/time_slots.css">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    {% if access %}
+    <h1>Управление расписанием</h1>
+    
+    <div class="date-selection">
+      <input type="date" id="scheduleDate" required>
+    </div>
+
+    <div class="time-slots" id="timeSlots"></div>
+    
+    <button onclick="saveSchedule()">Сохранить расписание</button>
+
+    <div class="saved-schedule">
+      <h2>Сохраненное расписание</h2>
+      <div class="schedule-list" id="savedScheduleList"></div>
+    </div>
+</div>
+{% else %}
+<p>{{ message }}</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/time_slots.js"></script>
+{% endblock %}

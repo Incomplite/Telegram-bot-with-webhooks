@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends
+from datetime import date
+
+from fastapi import APIRouter, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
-from sqlalchemy.orm import Session
-
-from src.api.schemas import AppointmentData
+from src.api.schemas import AppointmentData, Schedule
 from src.bot.bot_instance import bot
 from src.config import settings
-from src.database import Appointment, Service
+from src.database import Appointment, Service, AvailableTimeSlot
 from src.database.db import get_db
 from src.keyboards import main_keyboard
 
@@ -70,6 +70,7 @@ async def create_appointment(request: Request):
     # Возвращаем успешный ответ
     return {"message": "success!"}
 
+
 @router.delete("/appointment/{appointment_id}")
 async def delete_appointment(appointment_id: int):
     with get_db() as db:
@@ -79,3 +80,48 @@ async def delete_appointment(appointment_id: int):
             db.commit()
             return JSONResponse(status_code=200, content={"message": "Запись удалена"})
         return JSONResponse(status_code=404, content={"message": "Запись не найдена"})
+
+
+@router.get("/available-slots/{date}")
+async def get_available_slots(date: date):
+# Получение доступных слотов из БД для конкретной даты
+    with get_db() as db:
+        slot = db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == date).first()
+        if slot:
+            return {"slots": slot.get_time_slots()}
+        return JSONResponse(status_code=404, content={"message": "Слоты не найдены"})
+
+
+@router.post("/schedule")
+async def save_schedule(schedule: Schedule):
+    with get_db() as db:
+        existing_slots = db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == schedule.date).first()
+
+        if not schedule.slots or len(schedule.slots) == 0:
+            # Если слоты не выбраны, удаляем запись для данной даты
+            if existing_slots:
+                db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == schedule.date).delete()
+                db.commit()
+
+        # Если слоты выбраны, обновляем существующую запись
+        if existing_slots:
+            existing_slots.set_time_slots(schedule.slots)
+        else:
+            # Если записи не существует, создаем новую
+            new_slot = AvailableTimeSlot(date=schedule.date)
+            new_slot.set_time_slots(schedule.slots)
+            db.add(new_slot)
+
+        db.commit()
+    
+        return {"status": "success"}
+
+@router.get("/schedules")
+async def get_schedules():
+    with get_db() as db:
+        schedules = db.query(AvailableTimeSlot).all()
+        response = {}
+        for slot in schedules:
+            response[slot.date] = slot.get_time_slots()
+        
+        return [{"date": date, "slots": times} for date, times in response.items()]
