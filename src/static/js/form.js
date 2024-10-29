@@ -13,11 +13,22 @@ document.getElementById('appointment-form').addEventListener('submit', function 
     const serviceText = selectedServices.map(service => service.toLowerCase()).join(', ');
 
     const date = document.getElementById('date').value;
-    const time = document.getElementById('time').value;
+    const timeInput = document.getElementById('time');
+    const time = timeInput.value;
+
+    if (timeInput.disabled) {
+        alert("Нет доступных времен. Пожалуйста, выберите другую дату.");
+        return;
+    }
+
+    if (!time) {
+        alert("Необходимо выбрать время для записи.");
+        return;
+    }
 
     const formattedDate = new Date(date).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    const confirmationMessage = `${name}, вы записаны на ${formattedDate} в ${time} на следующие услуги: ${serviceText}.`;
+    const confirmationMessage = `${name}, вы записаны на ${formattedDate} в ${time} на следующие услуги: ${serviceText}.\nВы подтверждаете запись?`;
     document.getElementById('confirmationMessage').innerHTML = confirmationMessage;
       const modal = document.getElementById('confirmationModal');
       modal.style.display = 'block';
@@ -36,30 +47,29 @@ document.getElementById('date').addEventListener('change', async function () {
         // Очистим поле времени
         timeInput.innerHTML = '';
 
-        if (response.status === 404) {
+        const data = await response.json();
+
+        if (response.status === 404 || data.slots.length === 0) {
             const option = document.createElement('option');
             option.value = '';
             option.text = 'Нет доступных времен';
             timeInput.appendChild(option);
             timeInput.disabled = true;
         } else {
-            const data = await response.json();
-            if (data.slots.length > 0) {
-                data.slots.forEach(slot => {
-                    const option = document.createElement('option');
-                    option.value = slot;
-                    option.text = slot;
-                    timeInput.appendChild(option);
-                });
-                timeInput.disabled = false;
-            }
+            data.slots.forEach(slot => {
+                const option = document.createElement('option');
+                option.value = slot;
+                option.text = slot;
+                timeInput.appendChild(option);
+            });
+            timeInput.disabled = false;
         }
     } catch (error) {
         console.error('Ошибка получения доступных времен:', error);
     }
 });
 
-document.getElementById('closeModal').addEventListener('click', async function () {
+document.getElementById('confirmForm').addEventListener('click', async function () {
     const name = document.getElementById('name').value.trim();
 
     // Получаем все выбранные услуги через чекбоксы для хранения
@@ -83,7 +93,7 @@ document.getElementById('closeModal').addEventListener('click', async function (
     // Создаем объект с данными
     const appointmentData = {
         name: name,
-        services: selectedServices,  // Store as an array
+        services: selectedServices,
         appointment_date: date,
         appointment_time: time,
         user_id: userId
@@ -111,6 +121,20 @@ document.getElementById('closeModal').addEventListener('click', async function (
     } catch (error) {
         console.error('Error sending POST request:', error);
     }
+    
+    const modal = document.getElementById('confirmationModal');
+    modal.classList.remove('show');
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 100);
+});
+
+document.getElementById('editForm').addEventListener('click', function() {
+    const modal = document.getElementById('confirmationModal');
+    modal.classList.remove('show');
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 300);
 });
 
 

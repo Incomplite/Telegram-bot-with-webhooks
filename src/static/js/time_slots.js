@@ -1,7 +1,7 @@
 // Функция для получения доступных слотов времени с сервера
 async function getAvailableSlots(date) {
   try {
-      const response = await fetch(`/api/available-slots/${date}`);
+      const response = await fetch(`/api/all-slots/${date}`);
       if (!response.ok) {
           throw new Error('Network response was not ok');
       }

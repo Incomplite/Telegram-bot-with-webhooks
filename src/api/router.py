@@ -9,7 +9,7 @@ from src.bot.bot_instance import bot
 from src.config import settings
 from src.database import Appointment, Service, AvailableTimeSlot
 from src.database.db import get_db
-from src.keyboards import main_keyboard
+from src.keyboards import main_keyboard, contact_button
 
 router = APIRouter(prefix='/api', tags=['API'])
 
@@ -19,17 +19,20 @@ async def create_appointment(request: Request):
     # Получаем и валидируем JSON данные
     data = await request.json()
     validated_data = AppointmentData(**data)
-
-    service_names = validated_data.services  # Услуги уже в виде списка
+    
+    # Форматируем время
+    formatted_time = validated_data.appointment_time.strftime("%H:%M")
 
     # Формируем сообщение для пользователя
     message = (
         f"🎉 <b>{validated_data.name}, ваша заявка успешно принята!</b>\n\n"
         "💬 <b>Информация о вашей записи:</b>\n"
         f"👤 <b>Имя клиента:</b> {validated_data.name}\n"
-        f"💇 <b>Услуги:</b> {', '.join(service_names)}\n"  # Изменение: выводим все услуги
+        f"💅 <b>Услуги:</b> {', '.join(validated_data.services)}\n"  # Изменение: выводим все услуги
         f"📅 <b>Дата записи:</b> {validated_data.appointment_date}\n"
-        f"⏰ <b>Время записи:</b> {validated_data.appointment_time}\n\n"
+        f"⏰ <b>Время записи:</b> {formatted_time}\n\n"
+    )
+    contact_message = (
         "Спасибо за то что выбрали нас! ✨ Мы ждём вас в назначенное время."
     )
 
@@ -38,9 +41,9 @@ async def create_appointment(request: Request):
         "🔔 <b>Новая запись!</b>\n\n"
         "📄 <b>Детали заявки:</b>\n"
         f"👤 Имя клиента: {validated_data.name}\n"
-        f"💇 Услуги: {', '.join(service_names)}\n"  # Изменение: выводим все услуги
+        f"💅 Услуги: {', '.join(validated_data.services)}\n"  # Изменение: выводим все услуги
         f"📅 Дата: {validated_data.appointment_date}\n"
-        f"⏰ Время: {validated_data.appointment_time}\n"
+        f"⏰ Время: {formatted_time}\n"
     )
 
     # Добавление заявки в базу данных
@@ -63,8 +66,10 @@ async def create_appointment(request: Request):
         db.commit()  # Сохраняем изменения с услугами
 
     kb = main_keyboard(user_id=validated_data.user_id, first_name=validated_data.name)
+    inline_kb = contact_button()
     # Отправка сообщений через бота
     await bot.send_message(chat_id=validated_data.user_id, text=message, reply_markup=kb)
+    await bot.send_message(chat_id=validated_data.user_id, text=contact_message, reply_markup=inline_kb)
     await bot.send_message(chat_id=settings.ADMIN_USER_ID, text=admin_message, reply_markup=kb)
 
     # Возвращаем успешный ответ
@@ -80,6 +85,16 @@ async def delete_appointment(appointment_id: int):
             db.commit()
             return JSONResponse(status_code=200, content={"message": "Запись удалена"})
         return JSONResponse(status_code=404, content={"message": "Запись не найдена"})
+    
+
+@router.get("/all-slots/{date}")
+async def get_all_slots(date: date):
+# Получение доступных слотов из БД для конкретной даты
+    with get_db() as db:
+        slot = db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == date).first()
+        if slot:
+            return {"slots": slot.get_time_slots()}
+        return JSONResponse(status_code=404, content={"message": "Слоты не найдены"})
 
 
 @router.get("/available-slots/{date}")
@@ -87,8 +102,16 @@ async def get_available_slots(date: date):
 # Получение доступных слотов из БД для конкретной даты
     with get_db() as db:
         slot = db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == date).first()
+        print(f"slot:{slot}")
+        # Отфильтровываем уже забронированные места
+        booked_times = db.query(Appointment.time).filter(Appointment.date == date).all()
+        booked_times = {t[0].strftime("%H:%M") for t in booked_times}
+        print(f"booked_times:{booked_times}")
+        # Удаляем забронированные слоты из списка доступных слотов
         if slot:
-            return {"slots": slot.get_time_slots()}
+            available_slots = [time for time in slot.get_time_slots() if time not in booked_times]
+            print(f"available_slots:{available_slots}")
+            return {"slots": available_slots}
         return JSONResponse(status_code=404, content={"message": "Слоты не найдены"})
 
 

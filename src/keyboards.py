@@ -1,6 +1,11 @@
 from urllib.parse import quote  # Импортируем для кодирования URL
 
-from aiogram.types import InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, WebAppInfo
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+    WebAppInfo
+)
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from src.config import settings
@@ -56,3 +61,9 @@ def app_keyboard(user_id: int, first_name: str) -> InlineKeyboardMarkup:
     kb.button(text="📝Оставить заявку", web_app=WebAppInfo(url=url_add_application))
     kb.adjust(1)
     return kb.as_markup()
+
+
+def contact_button() -> InlineKeyboardMarkup:
+    inline_kb = InlineKeyboardBuilder()
+    inline_kb.button(text="☎️Посмотреть контакты", callback_data="contact_info")
+    return inline_kb.as_markup()

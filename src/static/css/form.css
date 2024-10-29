@@ -191,6 +191,16 @@ button:hover {
   font-size: 1.1rem;
 }
 
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.edit-button {
+  background-color: #b3a88f;
+}
+
 @media (max-width: 480px) {
   body {
     padding: 10px;
@@ -227,7 +237,7 @@ button:hover {
 
   .modal-content {
     width: 90%;
-    margin: 20% auto;
+    margin: 35% auto;
   }
 }
 
