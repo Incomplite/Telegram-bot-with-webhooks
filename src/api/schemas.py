@@ -16,3 +16,16 @@ class AppointmentData(BaseModel):
 class Schedule(BaseModel):
     date: date
     slots: List[str]
+
+
+class ServiceData(BaseModel):
+    name: str
+    price: int
+    description: str
+
+
+class ServiceResponse(BaseModel):
+    id: int
+    name: str
+    price: int
+    description: str

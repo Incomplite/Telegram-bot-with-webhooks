@@ -81,3 +81,27 @@ async def get_admin_interface(request: Request, admin_id: int = None):
     else:
         data_page['access'] = True
         return templates.TemplateResponse("time_slots.html", data_page)
+
+
+@router.get("/services", response_class=HTMLResponse)
+async def get_services(request: Request, user_id: int = None):
+    data_page = {"request": request, "access": True, "title": "Прайс-лист"}
+    with get_db() as db:
+        services = db.query(Service).all()
+    data_page['services'] = services
+    return templates.TemplateResponse("services.html", data_page)
+
+
+
+@router.get("/admin/services", response_class=HTMLResponse)
+async def get_admin_services(request: Request, admin_id: int = None):
+    data_page = {"request": request, "access": False, "title": "Администрирование прайс-листа"}
+    with get_db() as db:
+        services = db.query(Service).all()
+    data_page['services'] = services
+    if admin_id is None or admin_id != settings.ADMIN_USER_ID:
+        data_page['message'] = 'У вас нет прав!'
+        return templates.TemplateResponse("services.html", data_page)
+    else:
+        data_page['access'] = True
+        return templates.TemplateResponse("services.html", data_page)

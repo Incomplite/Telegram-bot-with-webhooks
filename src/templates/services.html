@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="/static/css/services.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ title }}</h1>
+
+    {% if access %}
+    {% if title == "Администрирование прайс-листа" %}
+    <button id="addServiceButton" class="add-button">Добавить услугу</button>
+    {% endif %}
+
+    <div class="services-grid">
+      {% for service in services %}
+      <div class="service-card" data-id="{{ service.id }}">
+        <div class="service-name">{{ service.name }}</div>
+        <div class="service-price">
+          {% if service.is_price_from %}
+          От {{ service.price }} ₽
+          {% else %}
+          {{ service.price }} ₽
+          {% endif %}
+        </div>
+        <div class="service-duration">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+          {{ service.duration }} мин
+        </div>
+        <div class="service-description">{{ service.description }}</div>
+        {% if title == "Администрирование прайс-листа" %}
+        <div class="button-group">
+            <button class="edit-button">Редактировать</button>
+            <button class="delete-button">Удалить</button>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+</div>
+
+<div class="modal" id="editModal">
+    <div class="modal-content">
+      <span class="modal-close">&times;</span>
+      <h2 id="modalTitle">Редактировать услугу</h2>
+      <form id="editForm">
+        <div class="form-group">
+          <label for="serviceName">Название услуги:</label>
+          <input type="text" id="serviceName" required>
+        </div>
+        <div class="form-group">
+          <label for="servicePrice">Цена (₽):</label>
+          <input type="number" id="servicePrice" required>
+        </div>
+        <div class="form-group">
+          <label for="serviceDuration">Длительность (мин):</label>
+          <input type="number" id="serviceDuration">
+        </div>
+        <div class="form-group">
+          <label for="serviceDescription">Описание:</label>
+          <textarea id="serviceDescription" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="save-button">Сохранить</button>
+      </form>
+    </div>
+</div>
+
+<div class="confirm-modal" id="deleteConfirmModal">
+    <div class="confirm-modal-content">
+      <h2>Подтверждение удаления</h2>
+      <p>Вы уверены, что хотите удалить эту услугу?</p>
+      <div class="confirm-buttons">
+        <button class="confirm-yes">Да</button>
+        <button class="confirm-no">Нет</button>
+      </div>
+    </div>
+</div>
+{% else %}
+<p>{{ message }}</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/services.js"></script>
+{% endblock %}

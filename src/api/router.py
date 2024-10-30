@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
-from src.api.schemas import AppointmentData, Schedule
+from src.api.schemas import AppointmentData, Schedule, ServiceData, ServiceResponse
 from src.bot.bot_instance import bot
 from src.config import settings
 from src.database import Appointment, Service, AvailableTimeSlot
@@ -148,3 +148,53 @@ async def get_schedules():
             response[slot.date] = slot.get_time_slots()
         
         return [{"date": date, "slots": times} for date, times in response.items()]
+
+
+@router.post("/services", response_model=ServiceResponse, status_code=201)
+async def create_service(request: Request):
+    data = await request.json()
+    validated_data = ServiceData(**data)
+    service = Service(
+        name=validated_data.name,
+        price=validated_data.price,
+        # duration=data['duration'],
+        description=validated_data.description
+    )
+    
+    with get_db() as db:
+        db.add(service)
+        db.commit()
+        db.refresh(service)
+
+    return service
+
+
+@router.put("/services/{service_id}", response_model=ServiceResponse, status_code=200)
+async def update_service(service_id: int, request: Request):
+    data = await request.json()
+    
+    with get_db() as db:
+        service = db.query(Service).filter(Service.id == service_id).first()
+        if not service:
+            raise HTTPException(status_code=404, detail="Service not found")
+        
+        service.name = data['name']
+        service.price = data['price']
+        # service.duration = data['duration']
+        service.description = data['description']
+        
+        db.commit()
+        db.refresh(service)  # Обновляем объект service с новыми данными из БД
+
+    return service
+
+
+@router.delete("/services/{service_id}")
+async def delete_appointment(service_id: int):
+    with get_db() as db:
+        service = db.query(Service).filter(Service.id == service_id).first()
+        if service:
+            db.delete(service)
+            db.commit()
+            return JSONResponse(status_code=200, content={"message": "Услуга удалена"})
+        return JSONResponse(status_code=404, content={"message": "Услуга не найдена"})
