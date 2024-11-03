@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String, Time
+from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String, Time, Float
 from sqlalchemy.orm import relationship
 
 from src.database.base import Base
@@ -23,6 +23,7 @@ class Service(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
+    duration = Column(Integer, nullable=False)
     price = Column(Integer, nullable=False)
     image_url = Column(String, nullable=True)
     is_price_from = Column(Boolean, default=False)
@@ -38,6 +39,7 @@ class Appointment(Base):
     name = Column(String, nullable=False)
     date = Column(Date, nullable=False)
     time = Column(Time, nullable=False)
+    total_price = Column(Float, nullable=False)
 
     user = relationship('User', back_populates='appointments')
     services = relationship('Service', secondary='appointment_service_association', back_populates='appointments')

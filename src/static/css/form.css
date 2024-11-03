@@ -201,6 +201,10 @@ button:hover {
   background-color: #b3a88f;
 }
 
+#confirmationMessage {
+  white-space: pre-line;
+}
+
 @media (max-width: 480px) {
   body {
     padding: 10px;

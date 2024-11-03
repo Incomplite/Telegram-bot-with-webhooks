@@ -19,7 +19,7 @@
             <label>Услуги</label>
             <div class="services-container">
                 {% for service in services %}
-                <input type="checkbox" id="{{ service.id }}" name="services" value="{{ service.id }}" class="service-checkbox">
+                <input type="checkbox" id="{{ service.id }}" name="services" value="{{ service.id }}" class="service-checkbox" data-price="{{ service.price }}">
                 <label for="{{ service.id }}" class="service-label">{{ service.name }}</label>
                 {% endfor %}
             </div>

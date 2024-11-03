@@ -3,14 +3,18 @@ document.getElementById('appointment-form').addEventListener('submit', function 
 
     const name = document.getElementById('name').value;
 
-    const selectedServices = Array.from(document.querySelectorAll('.service-checkbox:checked')).map(checkbox => checkbox.nextElementSibling.textContent);
+    const selectedServices = Array.from(document.querySelectorAll('.service-checkbox:checked')).map(checkbox => ({
+        name: checkbox.nextElementSibling.textContent,
+        price: parseFloat(checkbox.getAttribute('data-price'))
+    }));
 
     if (selectedServices.length === 0) {
         alert("Необходимо выбрать хотя бы одну услугу.");
         return;
     }
 
-    const serviceText = selectedServices.map(service => service.toLowerCase()).join(', ');
+    const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
+    const serviceText = selectedServices.map(service => service.name.toLowerCase()).join(', ');
 
     const date = document.getElementById('date').value;
     const timeInput = document.getElementById('time');
@@ -28,7 +32,7 @@ document.getElementById('appointment-form').addEventListener('submit', function 
 
     const formattedDate = new Date(date).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    const confirmationMessage = `${name}, вы записаны на ${formattedDate} в ${time} на следующие услуги: ${serviceText}.\nВы подтверждаете запись?`;
+    const confirmationMessage = `${name}, вы записаны на ${formattedDate} в ${time} на следующие услуги: ${serviceText}. Цена: ${totalPrice} руб.\nВы подтверждаете запись?`;
     document.getElementById('confirmationMessage').innerHTML = confirmationMessage;
       const modal = document.getElementById('confirmationModal');
       modal.style.display = 'block';
@@ -72,12 +76,15 @@ document.getElementById('date').addEventListener('change', async function () {
 document.getElementById('confirmForm').addEventListener('click', async function () {
     const name = document.getElementById('name').value.trim();
 
-    // Получаем все выбранные услуги через чекбоксы для хранения
-    const selectedServices = Array.from(document.querySelectorAll('.service-checkbox:checked')).map(checkbox => checkbox.nextElementSibling.textContent);
+    const selectedServices = Array.from(document.querySelectorAll('.service-checkbox:checked')).map(checkbox => ({
+        name: checkbox.nextElementSibling.textContent,
+        price: parseFloat(checkbox.getAttribute('data-price'))
+    }));
 
     const date = document.getElementById('date').value;
     const time = document.getElementById('time').value;
     const userId = document.getElementById('user_id').value;
+    const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
 
     // Проверяем валидность полей
     if (name.length < 2 || name.length > 50) {
@@ -93,10 +100,11 @@ document.getElementById('confirmForm').addEventListener('click', async function 
     // Создаем объект с данными
     const appointmentData = {
         name: name,
-        services: selectedServices,
+        services: selectedServices.map(service => service.name),
         appointment_date: date,
         appointment_time: time,
-        user_id: userId
+        user_id: userId,
+        total_price: totalPrice
     };
 
     // Преобразуем объект в JSON строку

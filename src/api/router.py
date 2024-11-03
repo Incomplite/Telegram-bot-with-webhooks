@@ -22,15 +22,17 @@ async def create_appointment(request: Request):
     
     # Форматируем время
     formatted_time = validated_data.appointment_time.strftime("%H:%M")
+    formatted_date = validated_data.appointment_date.strftime("%d.%m.%Y")
 
     # Формируем сообщение для пользователя
     message = (
         f"🎉 <b>{validated_data.name}, ваша заявка успешно принята!</b>\n\n"
         "💬 <b>Информация о вашей записи:</b>\n"
         f"👤 <b>Имя клиента:</b> {validated_data.name}\n"
-        f"💅 <b>Услуги:</b> {', '.join(validated_data.services)}\n"  # Изменение: выводим все услуги
-        f"📅 <b>Дата записи:</b> {validated_data.appointment_date}\n"
-        f"⏰ <b>Время записи:</b> {formatted_time}\n\n"
+        f"💅 <b>Услуги:</b> {', '.join(validated_data.services)}\n"
+        f"📅 <b>Дата записи:</b> {formatted_date}\n"
+        f"⏰ <b>Время записи:</b> {formatted_time}\n"
+        f"💰 <b>Общая стоимость:</b> {validated_data.total_price} руб.\n\n"
     )
     contact_message = (
         "Спасибо за то что выбрали нас! ✨ Мы ждём вас в назначенное время."
@@ -42,8 +44,9 @@ async def create_appointment(request: Request):
         "📄 <b>Детали заявки:</b>\n"
         f"👤 Имя клиента: {validated_data.name}\n"
         f"💅 Услуги: {', '.join(validated_data.services)}\n"  # Изменение: выводим все услуги
-        f"📅 Дата: {validated_data.appointment_date}\n"
+        f"📅 Дата: {formatted_date}\n"
         f"⏰ Время: {formatted_time}\n"
+        f"💰 <b>Общая стоимость:</b> {validated_data.total_price} руб.\n"
     )
 
     # Добавление заявки в базу данных
@@ -52,7 +55,8 @@ async def create_appointment(request: Request):
             user_id=validated_data.user_id,
             name=validated_data.name,
             date=validated_data.appointment_date,
-            time=validated_data.appointment_time
+            time=validated_data.appointment_time,
+            total_price=validated_data.total_price
         )
         db.add(appointment)  # Добавляем запись о записи
         db.commit()  # Сохраняем изменения
@@ -102,15 +106,12 @@ async def get_available_slots(date: date):
 # Получение доступных слотов из БД для конкретной даты
     with get_db() as db:
         slot = db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == date).first()
-        print(f"slot:{slot}")
         # Отфильтровываем уже забронированные места
         booked_times = db.query(Appointment.time).filter(Appointment.date == date).all()
         booked_times = {t[0].strftime("%H:%M") for t in booked_times}
-        print(f"booked_times:{booked_times}")
         # Удаляем забронированные слоты из списка доступных слотов
         if slot:
             available_slots = [time for time in slot.get_time_slots() if time not in booked_times]
-            print(f"available_slots:{available_slots}")
             return {"slots": available_slots}
         return JSONResponse(status_code=404, content={"message": "Слоты не найдены"})
 
@@ -157,7 +158,7 @@ async def create_service(request: Request):
     service = Service(
         name=validated_data.name,
         price=validated_data.price,
-        # duration=data['duration'],
+        duration=validated_data.duration,
         description=validated_data.description
     )
     
@@ -180,7 +181,7 @@ async def update_service(service_id: int, request: Request):
         
         service.name = data['name']
         service.price = data['price']
-        # service.duration = data['duration']
+        service.duration = data['duration']
         service.description = data['description']
         
         db.commit()

@@ -45,9 +45,10 @@
         {% for appointment in appointments %}
         <div class="appointment-card" data-id="{{ appointment.id }}">
             <h2>{{ appointment.name }}</h2>
-            <p><strong>Дата:</strong> {{ appointment.date }}</p>
-            <p><strong>Время:</strong> {{ appointment.time }}</p>
+            <p><strong>Дата:</strong> {{ appointment.date.strftime('%d.%m.%Y') }}</p>
+            <p><strong>Время:</strong> {{ appointment.time.strftime('%H:%M') }}</p>
             <p class="services"><strong>Услуги:</strong> {{ appointment.services | map(attribute='name') | join(', ') }}</p>
+            <p><strong>Цена:</strong> {{ appointment.total_price }}</p>
             {% if title_h1 == "Панель администратора" %}
             <button class="delete-button" data-id="{{ appointment.id }}">✕</button>
             {% endif %}
