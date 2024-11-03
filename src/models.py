@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String, Time, Float
+from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, Integer, String, Time
 from sqlalchemy.orm import relationship
 
 from src.database.base import Base

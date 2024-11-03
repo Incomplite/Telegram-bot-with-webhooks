@@ -7,9 +7,9 @@ from fastapi.responses import JSONResponse
 from src.api.schemas import AppointmentData, Schedule, ServiceData, ServiceResponse
 from src.bot.bot_instance import bot
 from src.config import settings
-from src.database import Appointment, Service, AvailableTimeSlot
+from src.database import Appointment, AvailableTimeSlot, Service
 from src.database.db import get_db
-from src.keyboards import main_keyboard, contact_button
+from src.keyboards import contact_button, main_keyboard
 
 router = APIRouter(prefix='/api', tags=['API'])
 
@@ -19,7 +19,7 @@ async def create_appointment(request: Request):
     # Получаем и валидируем JSON данные
     data = await request.json()
     validated_data = AppointmentData(**data)
-    
+
     # Форматируем время
     formatted_time = validated_data.appointment_time.strftime("%H:%M")
     formatted_date = validated_data.appointment_date.strftime("%d.%m.%Y")
@@ -89,11 +89,10 @@ async def delete_appointment(appointment_id: int):
             db.commit()
             return JSONResponse(status_code=200, content={"message": "Запись удалена"})
         return JSONResponse(status_code=404, content={"message": "Запись не найдена"})
-    
+
 
 @router.get("/all-slots/{date}")
 async def get_all_slots(date: date):
-# Получение доступных слотов из БД для конкретной даты
     with get_db() as db:
         slot = db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == date).first()
         if slot:
@@ -103,7 +102,6 @@ async def get_all_slots(date: date):
 
 @router.get("/available-slots/{date}")
 async def get_available_slots(date: date):
-# Получение доступных слотов из БД для конкретной даты
     with get_db() as db:
         slot = db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == date).first()
         # Отфильтровываем уже забронированные места
@@ -137,8 +135,9 @@ async def save_schedule(schedule: Schedule):
             db.add(new_slot)
 
         db.commit()
-    
+
         return {"status": "success"}
+
 
 @router.get("/schedules")
 async def get_schedules():
@@ -147,7 +146,7 @@ async def get_schedules():
         response = {}
         for slot in schedules:
             response[slot.date] = slot.get_time_slots()
-        
+
         return [{"date": date, "slots": times} for date, times in response.items()]
 
 
@@ -161,7 +160,7 @@ async def create_service(request: Request):
         duration=validated_data.duration,
         description=validated_data.description
     )
-    
+
     with get_db() as db:
         db.add(service)
         db.commit()
@@ -173,17 +172,17 @@ async def create_service(request: Request):
 @router.put("/services/{service_id}", response_model=ServiceResponse, status_code=200)
 async def update_service(service_id: int, request: Request):
     data = await request.json()
-    
+
     with get_db() as db:
         service = db.query(Service).filter(Service.id == service_id).first()
         if not service:
             raise HTTPException(status_code=404, detail="Service not found")
-        
+
         service.name = data['name']
         service.price = data['price']
         service.duration = data['duration']
         service.description = data['description']
-        
+
         db.commit()
         db.refresh(service)  # Обновляем объект service с новыми данными из БД
 
@@ -191,7 +190,7 @@ async def update_service(service_id: int, request: Request):
 
 
 @router.delete("/services/{service_id}")
-async def delete_appointment(service_id: int):
+async def delete_service(service_id: int):
     with get_db() as db:
         service = db.query(Service).filter(Service.id == service_id).first()
         if service:

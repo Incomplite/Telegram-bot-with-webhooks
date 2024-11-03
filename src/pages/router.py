@@ -69,12 +69,12 @@ async def get_admin_panel(request: Request, admin_id: int = None):
         data_page['appointments'] = appointments
         data_page['services'] = services
         return templates.TemplateResponse("appointments.html", data_page)
-    
+
 
 # Отображение страницы администратора
 @router.get("/admin/set-time-slots", response_class=HTMLResponse)
 async def get_admin_interface(request: Request, admin_id: int = None):
-    data_page = {"request": request, "access": False,"title": "Управление доступными временами"}
+    data_page = {"request": request, "access": False, "title": "Управление доступными временами"}
     if admin_id is None or admin_id != settings.ADMIN_USER_ID:
         data_page['message'] = 'У вас нет прав!'
         return templates.TemplateResponse("time_slots.html", data_page)
@@ -90,7 +90,6 @@ async def get_services(request: Request, user_id: int = None):
         services = db.query(Service).all()
     data_page['services'] = services
     return templates.TemplateResponse("services.html", data_page)
-
 
 
 @router.get("/admin/services", response_class=HTMLResponse)
