@@ -17,16 +17,18 @@ def main_keyboard(user_id: int, first_name: str) -> ReplyKeyboardMarkup:
     url_services = f"{settings.BASE_SITE}/services?user_id={user_id}"
     keyboard = [
         [
-            KeyboardButton(text="🌸Услуги", web_app=WebAppInfo(url=url_services)),
             KeyboardButton(text="📝Записаться", web_app=WebAppInfo(url=url_add_appointment)),
             KeyboardButton(text="📅Мои записи", web_app=WebAppInfo(url=url_appointments))
         ],
         [
-            KeyboardButton(text="💅Примеры работ"),
-            KeyboardButton(text="☎️Контакты")
+            KeyboardButton(text="🌸Прайс-лист", web_app=WebAppInfo(url=url_services)),
+            KeyboardButton(text="💅Примеры работ")
         ],
         [
             KeyboardButton(text="💡Идеи дизайна ногтей")
+        ],
+        [
+            KeyboardButton(text="☎️Контакты")
         ]
     ]
 
@@ -45,8 +47,8 @@ def admin_keyboard(user_id: int) -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
     kb.button(text="🏠На главную", callback_data="back_home")
     kb.button(text="📝Посмотреть все записи", web_app=WebAppInfo(url=url_appointments))
-    kb.button(text="Составить расписание", web_app=WebAppInfo(url=url_time_slots))
-    kb.button(text="Прайс-лист", web_app=WebAppInfo(url=url_services))
+    kb.button(text="📅Составить расписание", web_app=WebAppInfo(url=url_time_slots))
+    kb.button(text="🌸Прайс-лист", web_app=WebAppInfo(url=url_services))
     kb.adjust(1)
     return kb.as_markup()
 

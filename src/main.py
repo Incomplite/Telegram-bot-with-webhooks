@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 
 from aiogram.types import Update
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
@@ -10,7 +12,7 @@ from src.api.router import router as router_api
 from src.bot.bot_instance import bot, dp, start_bot, stop_bot
 from src.config import settings
 from src.main_router import router as main_router
-from src.middlewares.scheduler import SchedulerMiddleware
+from src.middlewares.scheduler import SchedulerMiddleware, scheduler
 from src.pages.router import router as router_pages
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -20,6 +22,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 async def lifespan(app: FastAPI):
     # Код, выполняющийся при запуске приложения
     logging.info("Starting bot setup...")
+    if not scheduler.running:
+        scheduler.start()
+        logging.info("Scheduler started")
     dp.include_router(main_router)
     dp.update.outer_middleware(SchedulerMiddleware())
     await start_bot()

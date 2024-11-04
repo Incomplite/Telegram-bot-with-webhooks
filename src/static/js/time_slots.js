@@ -126,6 +126,20 @@ async function updateSavedScheduleDisplay() {
               </div>
           `;
 
+          // Добавление обработчика события для выбора даты
+          scheduleItem.addEventListener('click', () => {
+            // Устанавливаем дату в поле выбора
+            const selectedDate = new Date(schedule.date).toISOString().split('T')[0];
+            document.getElementById('scheduleDate').value = selectedDate;
+            // Генерируем слоты времени для выбранной даты
+            generateTimeSlots();
+            // Убираем класс active у всех элементов и добавляем только к выбранному
+            document.querySelectorAll('.schedule-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            scheduleItem.classList.add('active');
+          });
+
           container.appendChild(scheduleItem);
       });
   } catch (error) {

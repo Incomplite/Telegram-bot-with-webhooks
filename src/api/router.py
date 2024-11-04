@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException
 from fastapi.requests import Request
@@ -10,6 +10,7 @@ from src.config import settings
 from src.database import Appointment, AvailableTimeSlot, Service
 from src.database.db import get_db
 from src.keyboards import contact_button, main_keyboard
+from src.middlewares.scheduler import scheduler
 
 router = APIRouter(prefix='/api', tags=['API'])
 
@@ -68,6 +69,10 @@ async def create_appointment(request: Request):
                 appointment.services.append(service)  # Добавляем услуги к записи
 
         db.commit()  # Сохраняем изменения с услугами
+
+        deletion_time = datetime.combine(validated_data.appointment_date, validated_data.appointment_time) + timedelta(hours=2)
+        print(deletion_time)
+        scheduler.add_job(delete_appointment, "date", run_date=deletion_time, args=[appointment.id])
 
     kb = main_keyboard(user_id=validated_data.user_id, first_name=validated_data.name)
     inline_kb = contact_button()

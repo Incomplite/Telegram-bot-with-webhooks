@@ -87,7 +87,7 @@ h1 {
 }
 
 .filters-container.show {
-    max-height: 1000px; /* Adjust this value based on the maximum height of your filters */
+    max-height: 1000px;
 }
 
 .filters {

@@ -39,7 +39,7 @@ class Appointment(Base):
     name = Column(String, nullable=False)
     date = Column(Date, nullable=False)
     time = Column(Time, nullable=False)
-    total_price = Column(Float, nullable=False)
+    total_price = Column(Integer, nullable=False)
 
     user = relationship('User', back_populates='appointments')
     services = relationship('Service', secondary='appointment_service_association', back_populates='appointments')
