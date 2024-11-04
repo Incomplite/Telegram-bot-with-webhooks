@@ -12,7 +12,12 @@
     <h1>{{ title_h1 }}</h1>
 
     {% if access %}
-    <button id="toggleFilters" class="toggle-filters-btn">Показать фильтры</button>
+    <div class="tabs">
+      <button class="tab active" data-tab="active">Активные записи</button>
+      <button class="tab" data-tab="archive">Архив</button>
+    </div>
+
+    <button id="toggleFilters" class="toggle-filters-btn">Фильтры</button>
 
     <div id="filtersContainer" class="filters-container">
       <div class="filters">
@@ -41,9 +46,24 @@
       </div>
     </div>
 
-    <div class="appointment-list" id="appointmentList">
-        {% for appointment in appointments %}
-        <div class="appointment-card" data-id="{{ appointment.id }}">
+    <div id="activeAppointments" class="appointment-list">
+        {% for appointment in active_appointments %}
+        <div class="appointment-card" data-id="{{ appointment.id }}" data-status="active">
+            <h2>{{ appointment.name }}</h2>
+            <p><strong>Дата:</strong> {{ appointment.date.strftime('%d.%m.%Y') }}</p>
+            <p><strong>Время:</strong> {{ appointment.time.strftime('%H:%M') }}</p>
+            <p class="services"><strong>Услуги:</strong> {{ appointment.services | map(attribute='name') | join(', ') }}</p>
+            <p><strong>Цена:</strong> {{ appointment.total_price }}</p>
+            {% if title_h1 == "Панель администратора" %}
+            <button class="delete-button" data-id="{{ appointment.id }}">✕</button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="archivedAppointments" class="appointment-list" style="display: none;">
+        {% for appointment in archived_appointments %}
+        <div class="appointment-card" data-id="{{ appointment.id }}" data-status="archive">
             <h2>{{ appointment.name }}</h2>
             <p><strong>Дата:</strong> {{ appointment.date.strftime('%d.%m.%Y') }}</p>
             <p><strong>Время:</strong> {{ appointment.time.strftime('%H:%M') }}</p>
@@ -56,15 +76,15 @@
         {% endfor %}
     </div>
 </div>
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <p>Вы точно хотите удалить эту запись?</p>
-            <div class="modal-buttons">
-                <button id="confirmDelete" class="modal-button confirm-delete">Да, удалить</button>
-                <button id="cancelDelete" class="modal-button cancel-delete">Отмена</button>
-            </div>
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <p>Вы точно хотите удалить эту запись?</p>
+        <div class="modal-buttons">
+            <button id="confirmDelete" class="modal-button confirm-delete">Да, удалить</button>
+            <button id="cancelDelete" class="modal-button cancel-delete">Отмена</button>
         </div>
     </div>
+</div>
 {% else %}
 <p>{{ message }}</p>
 {% endif %}

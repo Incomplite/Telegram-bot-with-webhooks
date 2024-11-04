@@ -1,9 +1,15 @@
 import json
+from enum import Enum
 
-from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, Integer, String, Time
+from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String, Time
 from sqlalchemy.orm import relationship
 
 from src.database.base import Base
+
+
+class AppointmentStatus(Enum):
+    ACTIVE = "active"
+    ARCHIVED = "archived"
 
 
 class User(Base):
@@ -40,6 +46,7 @@ class Appointment(Base):
     date = Column(Date, nullable=False)
     time = Column(Time, nullable=False)
     total_price = Column(Integer, nullable=False)
+    status = Column(String, default=AppointmentStatus.ACTIVE.value, nullable=False)
 
     user = relationship('User', back_populates='appointments')
     services = relationship('Service', secondary='appointment_service_association', back_populates='appointments')

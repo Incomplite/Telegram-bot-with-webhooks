@@ -1,353 +1,403 @@
 @import url('https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&display=swap');
 
 :root {
-    --primary-color: #99896f;
-    --secondary-color: #b3a88f;
-    --background-color: #99896f;
-    --text-color: #333333;
-    --title-color: #5e5341;
-    --form-background: linear-gradient(135deg, #e6dfc8 0%, #d1c7a3 100%);
-    --button-color: #93765a;
-    --button-hover-color: #a58668;
-    --checkbox-color: #93765a;
-    --checkbox-checked-color: #5e5341;
-    --delete-button-color: #d9534f;
-    --delete-button-hover-color: #c9302c;
-    --confirm-button-color: #5cb85c;
-    --confirm-button-hover-color: #4cae4c;
-    --cancel-button-color: #f0ad4e;
-    --cancel-button-hover-color: #eea236;
+  --primary-color: #99896f;
+  --secondary-color: #b3a88f;
+  --background-color: #99896f;
+  --text-color: #333333;
+  --title-color: #5e5341;
+  --form-background: linear-gradient(135deg, #e6dfc8 0%, #d1c7a3 100%);
+  --button-color: #93765a;
+  --button-hover-color: #a58668;
+  --checkbox-color: #93765a;
+  --checkbox-checked-color: #5e5341;
+  --delete-button-color: #d9534f;
+  --delete-button-hover-color: #c9302c;
+  --confirm-button-color: #5cb85c;
+  --confirm-button-hover-color: #4cae4c;
+  --cancel-button-color: #f0ad4e;
+  --cancel-button-hover-color: #eea236;
 }
 
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html, body {
-    height: 100%;
+  height: 100%;
 }
 
 body {
-    font-family: 'El Messiri', sans-serif;
-    color: var(--text-color);
-    background: var(--background-color);
-    padding: 20px;
+  font-family: 'El Messiri', sans-serif;
+  color: var(--text-color);
+  background: var(--background-color);
+  padding: 20px;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: var(--form-background);
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    background-blend-mode: overlay;
-    animation: fadeIn 0.8s ease-out;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--form-background);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  background-blend-mode: overlay;
+  animation: fadeIn 0.8s ease-out;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 h1 {
-    color: var(--title-color);
-    text-align: center;
-    margin-bottom: 30px;
-    font-weight: 700;
-    font-size: 2.5rem;
-    text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+  color: var(--title-color);
+  text-align: center;
+  margin-bottom: 30px;
+  font-weight: 700;
+  font-size: 2.5rem;
+  text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
 }
 
-.toggle-filters-btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    background-color: var(--button-color);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    font-family: 'El Messiri', sans-serif;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.toggle-filters-btn:hover {
-    background-color: var(--button-hover-color);
+.tab {
+  padding: 10px 20px;
+  background-color: var(--button-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'El Messiri', sans-serif;
+  transition: background-color 0.3s ease;
+  flex: 1;
 }
 
-.filters-container {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s ease-out;
+.tab.active {
+  background-color: var(--button-hover-color);
 }
 
-.filters-container.show {
-    max-height: 1000px;
-}
-
-.filters {
-    padding: 20px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
-.appointment-list {
-    display: grid;
-    gap: 20px;
-}
-
-.appointment-card {
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
-}
-
-.appointment-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-}
-
-.appointment-card h2 {
-    color: var(--title-color);
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-}
-
-.appointment-card p {
-    margin-bottom: 5px;
-}
-
-.appointment-card .services {
-    color: var(--text-color);
-}
-
-.delete-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: var(--delete-button-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.delete-button:hover {
-    background-color: var(--delete-button-hover-color);
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-}
-
-.filter-group label {
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-
-.filter-group input, .filter-group select {
-    padding: 8px;
-    border: 2px solid rgba(153, 137, 111, 0.3);
-    border-radius: 5px;
-    font-size: 1rem;
-    font-family: 'El Messiri', sans-serif;
-}
-
-.search-input {
-    width: 100%;
-}
-
-.service-checkboxes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.service-checkbox {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-}
-
-.service-checkbox input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-}
-
-.checkmark {
-    position: relative;
-    display: inline-block;
-    height: 20px;
-    width: 20px;
-    background-color: #fff;
-    border: 2px solid var(--checkbox-color);
-    border-radius: 4px;
-    margin-right: 8px;
-    transition: all 0.3s ease;
-}
-
-.service-checkbox:hover input ~ .checkmark {
-    background-color: #f0f0f0;
-}
-
-.service-checkbox input:checked ~ .checkmark {
-    background-color: var(--checkbox-checked-color);
-    border-color: var(--checkbox-checked-color);
-}
-
-.checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
-    left: 6px;
-    top: 2px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-.service-checkbox input:checked ~ .checkmark:after {
-    display: block;
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    animation: fadeIn 0.3s ease-out;
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 400px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    text-align: center;
-    animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-    from {
-      transform: translateY(-50px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-}
-
-.modal-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.modal-button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: 'El Messiri', sans-serif;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-}
-
-.confirm-delete {
-    background-color: var(--confirm-button-color);
-    color: white;
-}
-
-.confirm-delete:hover {
-    background-color: var(--confirm-button-hover-color);
-}
-
-.cancel-delete {
-    background-color: var(--cancel-button-color);
-    color: white;
-}
-
-.cancel-delete:hover {
-    background-color: var(--cancel-button-hover-color);
+.tab:hover {
+  background-color: var(--button-hover-color);
 }
 
 @media (max-width: 768px) {
-    body {
-      padding: 10px;
-    }
+  body {
+    padding: 10px;
+  }
 
-    .container {
-      padding: 20px;
-    }
+  .container {
+    padding: 20px;
+  }
 
-    h1 {
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-    }
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+  }
 
-    .filters {
-      flex-direction: column;
-      gap: 15px;
-    }
+  .tabs {
+    gap: 5px;
+  }
 
-    .filter-group {
-      width: 100%;
-    }
+  .tab {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+}
 
-    .service-checkboxes {
-      flex-direction: column;
-      align-items: flex-start;
-    }
+.toggle-filters-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: var(--button-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-family: 'El Messiri', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
 
-    .appointment-card {
-      padding: 15px 40px 15px 15px;
-    }
+.toggle-filters-btn:hover {
+  background-color: var(--button-hover-color);
+}
 
-    .appointment-card h2 {
-      font-size: 1.3rem;
-    }
+.filters-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease-out;
+}
 
-    .delete-button {
-      top: 50%;
-      transform: translateY(-50%);
-      right: 10px;
-    }
+.filters-container.show {
+  max-height: 1000px;
+}
 
-    .modal-content {
-      width: 90%;
-      margin: 30% auto;
-    }
+.filters {
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.appointment-list {
+  display: grid;
+  gap: 20px;
+}
+
+.appointment-card {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+
+.appointment-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.appointment-card h2 {
+  color: var(--title-color);
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.appointment-card p {
+  margin-bottom: 5px;
+}
+
+.appointment-card .services {
+  color: var(--text-color);
+}
+
+.delete-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--delete-button-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-button:hover {
+  background-color: var(--delete-button-hover-color);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.filter-group label {
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.filter-group input, .filter-group select {
+  padding: 8px;
+  border: 2px solid rgba(153, 137, 111, 0.3);
+  border-radius: 5px;
+  font-size: 1rem;
+  font-family: 'El Messiri', sans-serif;
+}
+
+.search-input {
+  width: 100%;
+}
+
+.service-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.service-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.service-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: relative;
+  display: inline-block;
+  height: 20px;
+  width: 20px;
+  background-color: #fff;
+  border: 2px solid var(--checkbox-color);
+  border-radius: 4px;
+  margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+.service-checkbox:hover input ~ .checkmark {
+  background-color: #f0f0f0;
+}
+
+.service-checkbox input:checked ~ .checkmark {
+  background-color: var(--checkbox-checked-color);
+  border-color: var(--checkbox-checked-color);
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.service-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 400px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  text-align: center;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'El Messiri', sans-serif;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.confirm-delete {
+  background-color: var(--confirm-button-color);
+  color: white;
+}
+
+.confirm-delete:hover {
+  background-color: var(--confirm-button-hover-color);
+}
+
+.cancel-delete {
+  background-color: var(--cancel-button-color);
+  color: white;
+}
+
+.cancel-delete:hover {
+  background-color: var(--cancel-button-hover-color);
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .container {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .service-checkboxes {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .appointment-card {
+    padding: 15px 40px 15px 15px;
+  }
+
+  .appointment-card h2 {
+    font-size: 1.3rem;
+  }
+
+  .delete-button {
+    top: 50%;
+    transform: translateY(-50%);
+    right: 10px;
+  }
+
+  .modal-content {
+    width: 90%;
+    margin: 30% auto;
+  }
 }

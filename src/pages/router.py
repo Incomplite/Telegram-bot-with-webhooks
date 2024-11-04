@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload
 from src.config import settings
 from src.database import Appointment, Service, User
 from src.database.db import get_db
+from src.models import AppointmentStatus
 
 router = APIRouter(prefix='', tags=['Фронтенд'])
 templates = Jinja2Templates(directory='src/templates')
@@ -45,14 +46,20 @@ async def get_user_appointments(request: Request, user_id: int = None):
             data_page['message'] = 'Пользователь не указан или не найден в базе данных'
             return templates.TemplateResponse("appointments.html", data_page)
         else:
-            appointments = db.query(Appointment).filter(Appointment.user_id == user_id).all()
+            active_appointments = db.query(Appointment).filter(
+                Appointment.user_id == user_id, Appointment.status == AppointmentStatus.ACTIVE.value
+            ).all()
+            archived_appointments = db.query(Appointment).filter(
+                Appointment.user_id == user_id, Appointment.status == AppointmentStatus.ARCHIVED.value
+            ).all()
             data_page['access'] = True
-            if len(appointments):
-                data_page['appointments'] = appointments
-                return templates.TemplateResponse("appointments.html", data_page)
-            else:
+            data_page['active_appointments'] = active_appointments
+            data_page['archived_appointments'] = archived_appointments
+            
+            if not active_appointments and not archived_appointments:
                 data_page['message'] = 'У вас нет записей!'
-                return templates.TemplateResponse("appointments.html", data_page)
+
+            return templates.TemplateResponse("appointments.html", data_page)
 
 
 @router.get("/admin/appointments", response_class=HTMLResponse)
@@ -64,10 +71,19 @@ async def get_admin_panel(request: Request, admin_id: int = None):
     else:
         data_page['access'] = True
         with get_db() as db:
-            appointments = db.query(Appointment).options(joinedload(Appointment.services)).all()
+            active_appointments = db.query(Appointment).filter(
+                Appointment.status == AppointmentStatus.ACTIVE.value
+            ).options(joinedload(Appointment.services)).all()
+            archived_appointments = db.query(Appointment).filter(
+                Appointment.status == AppointmentStatus.ARCHIVED.value
+            ).options(joinedload(Appointment.services)).all()
+
             services = db.query(Service).all()
-        data_page['appointments'] = appointments
+
+        data_page['active_appointments'] = active_appointments
+        data_page['archived_appointments'] = archived_appointments
         data_page['services'] = services
+        
         return templates.TemplateResponse("appointments.html", data_page)
 
 

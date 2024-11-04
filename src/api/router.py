@@ -11,6 +11,8 @@ from src.database import Appointment, AvailableTimeSlot, Service
 from src.database.db import get_db
 from src.keyboards import contact_button, main_keyboard
 from src.middlewares.scheduler import scheduler
+from src.models import AppointmentStatus
+from src.api.utils import archive_appointment
 
 router = APIRouter(prefix='/api', tags=['API'])
 
@@ -57,7 +59,8 @@ async def create_appointment(request: Request):
             name=validated_data.name,
             date=validated_data.appointment_date,
             time=validated_data.appointment_time,
-            total_price=validated_data.total_price
+            total_price=validated_data.total_price,
+            status=AppointmentStatus.ACTIVE.value
         )
         db.add(appointment)  # Добавляем запись о записи
         db.commit()  # Сохраняем изменения
@@ -70,9 +73,8 @@ async def create_appointment(request: Request):
 
         db.commit()  # Сохраняем изменения с услугами
 
-        deletion_time = datetime.combine(validated_data.appointment_date, validated_data.appointment_time) + timedelta(hours=2)
-        print(deletion_time)
-        scheduler.add_job(delete_appointment, "date", run_date=deletion_time, args=[appointment.id])
+        change_time = datetime.combine(validated_data.appointment_date, validated_data.appointment_time) + timedelta(hours=2)
+        scheduler.add_job(archive_appointment, "date", run_date=change_time, args=[appointment.id])
 
     kb = main_keyboard(user_id=validated_data.user_id, first_name=validated_data.name)
     inline_kb = contact_button()
