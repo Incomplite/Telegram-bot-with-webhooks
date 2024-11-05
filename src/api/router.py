@@ -13,6 +13,7 @@ from src.keyboards import contact_button, main_keyboard
 from src.middlewares.scheduler import scheduler
 from src.models import AppointmentStatus
 from src.api.utils import archive_appointment
+from src.handlers.reminder_router import schedule_reminder
 
 router = APIRouter(prefix='/api', tags=['API'])
 
@@ -49,7 +50,8 @@ async def create_appointment(request: Request):
         f"💅 Услуги: {', '.join(validated_data.services)}\n"  # Изменение: выводим все услуги
         f"📅 Дата: {formatted_date}\n"
         f"⏰ Время: {formatted_time}\n"
-        f"💰 <b>Общая стоимость:</b> {validated_data.total_price} руб.\n"
+        f"💰 <b>Общая стоимость:</b> {validated_data.total_price} руб.\n\n"
+        f"<b>Пользователь:</b> @{validated_data.username}\n"
     )
 
     # Добавление заявки в базу данных
@@ -62,7 +64,7 @@ async def create_appointment(request: Request):
             total_price=validated_data.total_price,
             status=AppointmentStatus.ACTIVE.value
         )
-        db.add(appointment)  # Добавляем запись о записи
+        db.add(appointment)
         db.commit()  # Сохраняем изменения
 
         # Добавление услуг в ассоциативную таблицу
@@ -75,6 +77,7 @@ async def create_appointment(request: Request):
 
         change_time = datetime.combine(validated_data.appointment_date, validated_data.appointment_time) + timedelta(hours=2)
         scheduler.add_job(archive_appointment, "date", run_date=change_time, args=[appointment.id])
+        schedule_reminder(appointment)
 
     kb = main_keyboard(user_id=validated_data.user_id, first_name=validated_data.name)
     inline_kb = contact_button()
@@ -191,7 +194,7 @@ async def update_service(service_id: int, request: Request):
         service.description = data['description']
 
         db.commit()
-        db.refresh(service)  # Обновляем объект service с новыми данными из БД
+        db.refresh(service)
 
     return service
 

@@ -10,6 +10,7 @@ from src.database.base import Base
 class AppointmentStatus(Enum):
     ACTIVE = "active"
     ARCHIVED = "archived"
+    CONFIRMED = "confirmed"
 
 
 class User(Base):

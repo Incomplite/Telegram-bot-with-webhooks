@@ -47,15 +47,17 @@ async def get_user_appointments(request: Request, user_id: int = None):
             return templates.TemplateResponse("appointments.html", data_page)
         else:
             active_appointments = db.query(Appointment).filter(
-                Appointment.user_id == user_id, Appointment.status == AppointmentStatus.ACTIVE.value
-            ).all()
+                Appointment.user_id == user_id, Appointment.status.in_([
+                    AppointmentStatus.ACTIVE.value,
+                    AppointmentStatus.CONFIRMED.value
+                ])).all()
             archived_appointments = db.query(Appointment).filter(
                 Appointment.user_id == user_id, Appointment.status == AppointmentStatus.ARCHIVED.value
             ).all()
             data_page['access'] = True
             data_page['active_appointments'] = active_appointments
             data_page['archived_appointments'] = archived_appointments
-            
+
             if not active_appointments and not archived_appointments:
                 data_page['message'] = 'У вас нет записей!'
 
@@ -72,7 +74,7 @@ async def get_admin_panel(request: Request, admin_id: int = None):
         data_page['access'] = True
         with get_db() as db:
             active_appointments = db.query(Appointment).filter(
-                Appointment.status == AppointmentStatus.ACTIVE.value
+                Appointment.status.in_([AppointmentStatus.ACTIVE.value, AppointmentStatus.CONFIRMED.value])
             ).options(joinedload(Appointment.services)).all()
             archived_appointments = db.query(Appointment).filter(
                 Appointment.status == AppointmentStatus.ARCHIVED.value
@@ -83,7 +85,7 @@ async def get_admin_panel(request: Request, admin_id: int = None):
         data_page['active_appointments'] = active_appointments
         data_page['archived_appointments'] = archived_appointments
         data_page['services'] = services
-        
+
         return templates.TemplateResponse("appointments.html", data_page)
 
 

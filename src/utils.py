@@ -7,10 +7,6 @@ from src.keyboards import main_keyboard
 time_slots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]
 
 
-def is_sunday(date):
-    return date.weekday() == 6  # 6 - это воскресенье
-
-
 def get_available_time_slots(date, db):
     date_only = date.date()
     booked_appointments = db.query(Appointment).filter(Appointment.date == date_only).all()
@@ -19,7 +15,6 @@ def get_available_time_slots(date, db):
     return available_times
 
 
-# Функция получения фотографий из базы данных
 def get_photos():
     with get_db() as db:
         photos = db.query(Photo).all()

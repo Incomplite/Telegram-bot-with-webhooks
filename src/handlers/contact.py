@@ -16,6 +16,7 @@ async def send_contact(message: types.Message):
 @router.callback_query(F.data == "contact_info")
 async def send_contact_callback(callback_query: CallbackQuery):
     await send_contact_info(callback_query.from_user.id, callback_query.from_user.first_name)
+    await callback_query.message.edit_reply_markup(reply_markup=None)
     await callback_query.answer()
 
 

@@ -86,6 +86,9 @@ document.getElementById('confirmForm').addEventListener('click', async function 
     const userId = document.getElementById('user_id').value;
     const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
 
+    const user = Telegram.WebApp.initDataUnsafe.user;
+    const username = user ? user.username : '';
+
     // Проверяем валидность полей
     if (name.length < 2 || name.length > 50) {
         alert("Имя должно быть от 2 до 50 символов.");
@@ -104,7 +107,8 @@ document.getElementById('confirmForm').addEventListener('click', async function 
         appointment_date: date,
         appointment_time: time,
         user_id: userId,
-        total_price: totalPrice
+        total_price: totalPrice,
+        username: username
     };
 
     // Преобразуем объект в JSON строку

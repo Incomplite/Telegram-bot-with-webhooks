@@ -12,6 +12,7 @@ class AppointmentData(BaseModel):
     appointment_time: time = Field(..., description="Время назначения")
     user_id: int = Field(..., description="ID пользователя Telegram")
     total_price: int = Field(..., description="Общая стоимость услуг")
+    username: str = Field(..., description="Юзернейм пользователя")
 
 
 class Schedule(BaseModel):
