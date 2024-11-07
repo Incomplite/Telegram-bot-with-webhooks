@@ -14,8 +14,8 @@ dp = Dispatcher()
 
 
 async def start_bot():
-    await bot.send_message(settings.ADMIN_USER_ID, 'Бот запущен🥳.')
+    await bot.send_message(settings.MASTER_USER_ID, 'Бот запущен🥳.')
 
 
 async def stop_bot():
-    await bot.send_message(settings.ADMIN_USER_ID, 'Бот остановлен😔.')
+    await bot.send_message(settings.MASTER_USER_ID, 'Бот остановлен😔.')

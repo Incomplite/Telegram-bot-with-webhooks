@@ -33,8 +33,8 @@ async def send_reminder(appointment_id, user_id, name, time):
 
 # Функция для планирования напоминания
 def schedule_reminder(appointment):
-    # reminder_time = datetime.combine(appointment.date, appointment.time) - timedelta(days=1)
-    reminder_time = datetime.now() + timedelta(seconds=30)
+    reminder_time = datetime.combine(appointment.date, appointment.time) - timedelta(days=1)
+    # reminder_time = datetime.now() + timedelta(seconds=30)
     scheduler.add_job(send_reminder, 'date', run_date=reminder_time, args=[
         appointment.id,
         appointment.user_id,
@@ -75,5 +75,5 @@ async def process_callback_button(callback_query: CallbackQuery):
         db.commit()
 
     await bot.send_message(chat_id=user_id, text=client_message)
-    await bot.send_message(chat_id=settings.ADMIN_USER_ID, text=admin_message)
+    await bot.send_message(chat_id=settings.MASTER_CHAT_ID, text=admin_message)
     await callback_query.message.edit_reply_markup(reply_markup=None)

@@ -32,7 +32,7 @@ def main_keyboard(user_id: int, first_name: str) -> ReplyKeyboardMarkup:
         ]
     ]
 
-    if user_id == settings.ADMIN_USER_ID:
+    if user_id == settings.MASTER_USER_ID:
         keyboard.append([
             KeyboardButton(text="🔑Админ панель")
         ])

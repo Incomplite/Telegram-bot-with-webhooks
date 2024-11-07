@@ -94,7 +94,7 @@ async def create_appointment(request: Request):
     # Отправка сообщений через бота
     await bot.send_message(chat_id=validated_data.user_id, text=message, reply_markup=kb)
     await bot.send_message(chat_id=validated_data.user_id, text=contact_message, reply_markup=inline_kb)
-    await bot.send_message(chat_id=settings.ADMIN_USER_ID, text=admin_message)
+    await bot.send_message(chat_id=settings.MASTER_CHAT_ID, text=admin_message)
 
     # Возвращаем успешный ответ
     return {"message": "success!"}
