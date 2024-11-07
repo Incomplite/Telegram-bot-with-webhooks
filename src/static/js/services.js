@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    if (Telegram.WebApp) {
+      Telegram.WebApp.expand();
+    }
+
     const modal = document.getElementById('editModal');
     const editButtons = document.querySelectorAll('.edit-button');
     const closeButton = document.querySelector('.modal-close');
@@ -6,11 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const addButton = document.getElementById('addServiceButton');
     let currentCard = null;
     let isEditing = false;
+    let cardToDelete = null;
 
     function createNewServiceCard(name, price, duration, description) {
       const card = document.createElement('div');
       card.className = 'service-card';
-      card.setAttribute('data-id', Date.now()); // Generate unique ID
+      card.setAttribute('data-id', Date.now());
       
       card.innerHTML = `
         <div class="service-name">${name}</div>
@@ -20,14 +26,18 @@ document.addEventListener('DOMContentLoaded', () => {
             <circle cx="12" cy="12" r="10"/>
             <path d="M12 6v6l4 2"/>
           </svg>
-          ${duration} мин
+          ${duration}
         </div>
         <div class="service-description">${description}</div>
-        <button class="edit-button">Редактировать</button>
+        <div class="button-group">
+          <button class="edit-button">Редактировать</button>
+          <button class="delete-button">Удалить</button>
+        </div>
       `;
 
       // Add edit button listener to new card
       card.querySelector('.edit-button').addEventListener('click', handleEditClick);
+      card.querySelector('.delete-button').addEventListener('click', handleDeleteClick);
       
       return card;
     }
@@ -39,8 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
       
       document.getElementById('modalTitle').textContent = 'Редактировать услугу';
       document.getElementById('serviceName').value = card.querySelector('.service-name').textContent;
-      document.getElementById('servicePrice').value = parseInt(card.querySelector('.service-price').textContent);
-      document.getElementById('serviceDuration').value = parseInt(card.querySelector('.service-duration').textContent);
+      // Обработка цены
+      const priceElement = card.querySelector('.service-price');
+      const priceText = priceElement.textContent.trim();
+      const isPriceFrom = priceText.startsWith('От');
+      const priceValue = priceText.replace(/От\s*/, '').replace(/\s*₽/, '').trim(); // Удаляем "От" и знак ₽
+
+      document.getElementById('servicePrice').value = parseInt(priceValue);
+      document.getElementById('serviceDuration').value = card.querySelector('.service-duration').textContent.trim();
       document.getElementById('serviceDescription').value = card.querySelector('.service-description').textContent;
       
       modal.style.display = 'flex';
@@ -104,6 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.style.display = 'none';
         resetForm();
       }
+      if(e.target === deleteConfirmModal) {
+        deleteConfirmModal.style.display = 'none';
+        cardToDelete = null;
+      }
     });
 
     editForm.addEventListener('submit', (e) => {
@@ -135,7 +155,11 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             currentCard.querySelector('.service-name').textContent = data.name;
             currentCard.querySelector('.service-price').textContent = data.price + ' ₽';
-            currentCard.querySelector('.service-duration').textContent = data.duration + ' мин';
+            const durationElement = currentCard.querySelector('.service-duration');
+            const svgIcon = durationElement.querySelector('svg');
+            durationElement.innerHTML = '';
+            durationElement.appendChild(svgIcon);
+            durationElement.appendChild(document.createTextNode(data.duration));
             currentCard.querySelector('.service-description').textContent = data.description;
         });
       } else {

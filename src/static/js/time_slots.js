@@ -153,9 +153,35 @@ document.getElementById('scheduleDate').addEventListener('change', generateTimeS
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', async () => {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('scheduleDate').value = today;
-  document.getElementById('scheduleDate').min = today;
-  await generateTimeSlots();
-  await updateSavedScheduleDisplay();
+
+    if (Telegram.WebApp) {
+        Telegram.WebApp.expand();
+    }
+
+    const today = new Date();
+
+    // Устанавливаем минимальную дату на послезавтра
+    const minDate = new Date(today);
+    minDate.setDate(today.getDate() + 2);
+
+    // Устанавливаем максимальную дату на два месяца вперед
+    const maxDate = new Date(today);
+    maxDate.setMonth(today.getMonth() + 2);
+
+    const scheduleDateInput = document.getElementById('scheduleDate');
+    scheduleDateInput.value = minDate.toISOString().split('T')[0];
+    scheduleDateInput.min = minDate.toISOString().split('T')[0];
+    scheduleDateInput.max = maxDate.toISOString().split('T')[0];
+
+    // Запрещаем выбор воскресенья
+    scheduleDateInput.addEventListener('input', function() {
+        const selectedDate = new Date(this.value);
+        if (selectedDate.getDay() === 0) { // Проверка на воскресенье
+            alert("Запись на воскресенье недоступна. Пожалуйста, выберите другую дату.");
+            this.value = '';
+        }
+    });
+    
+    await generateTimeSlots();
+    await updateSavedScheduleDisplay();
 });

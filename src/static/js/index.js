@@ -1,6 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
     const user = Telegram.WebApp.initDataUnsafe.user;
 
+    if (Telegram.WebApp) {
+        Telegram.WebApp.expand();
+    }
+
     const bookButton = document.getElementById('book-button');
 
     bookButton.addEventListener('click', function () {

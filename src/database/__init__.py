@@ -1,5 +1,5 @@
 from .base import Base
-from src.models import (
+from .models import (
     User,
     Appointment,
     Service,

@@ -1,6 +1,6 @@
 from src.database import Appointment
 from src.database.db import get_db
-from src.models import AppointmentStatus
+from src.database.models import AppointmentStatus
 
 
 async def archive_appointment(appointment_id: int):

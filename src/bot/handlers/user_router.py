@@ -1,4 +1,4 @@
-from aiogram import F, Router
+from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
@@ -6,10 +6,10 @@ from src.database import User
 from src.database.db import get_db
 from src.utils import greet_user
 
-user_router = Router()
+router = Router()
 
 
-@user_router.message(CommandStart())
+@router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
     """
     Обрабатывает команду /start.
@@ -26,11 +26,3 @@ async def cmd_start(message: Message) -> None:
             db.commit()
 
     await greet_user(message, is_new_user=not user)
-
-
-@user_router.message(F.text == '🔙 Назад')
-async def cmd_back_home(message: Message) -> None:
-    """
-    Обрабатывает нажатие кнопки "Назад".
-    """
-    await greet_user(message, is_new_user=False)

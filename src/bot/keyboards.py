@@ -45,7 +45,6 @@ def admin_keyboard(user_id: int) -> InlineKeyboardMarkup:
     url_time_slots = f"{settings.BASE_SITE}/admin/set-time-slots?admin_id={user_id}"
     url_services = f"{settings.BASE_SITE}/admin/services?admin_id={user_id}"
     kb = InlineKeyboardBuilder()
-    kb.button(text="🏠На главную", callback_data="back_home")
     kb.button(text="📝Посмотреть все записи", web_app=WebAppInfo(url=url_appointments))
     kb.button(text="📅Составить расписание", web_app=WebAppInfo(url=url_time_slots))
     kb.button(text="🌸Прайс-лист", web_app=WebAppInfo(url=url_services))

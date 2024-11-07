@@ -30,7 +30,7 @@ class Service(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
-    duration = Column(Integer, nullable=False)
+    duration = Column(String, nullable=False)
     price = Column(Integer, nullable=False)
     image_url = Column(String, nullable=True)
     is_price_from = Column(Boolean, default=False)

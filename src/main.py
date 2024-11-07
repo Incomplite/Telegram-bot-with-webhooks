@@ -3,8 +3,6 @@ from contextlib import asynccontextmanager
 
 from aiogram.types import Update
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 

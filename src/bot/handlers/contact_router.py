@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.markdown import hide_link
 
 from src.bot.bot_instance import bot
-from src.keyboards import main_keyboard
+from src.bot.keyboards import main_keyboard
 
 router = Router()
 
@@ -23,10 +23,10 @@ async def send_contact_callback(callback_query: CallbackQuery):
 async def send_contact_info(user_id: int, first_name: str):
     contact_info = (
         f"{hide_link('https://yandex.ru/maps/39/rostov-na-donu/house/gorsovetskaya_ulitsa_49s1/Z0AYcQBnQUcEQFptfX51c39nZw')}"
-        "Ваш мастер маникюра: Кристина\n\n"
-        "Телефон: 89045045661\n\n"
-        "Telegram: @Uniccornn\n\n"
-        "Адрес: ул. Горсоветская, д.49/1"
+        "<b>Ваш мастер маникюра:</b> Кристина\n"
+        "<b>Телефон:</b> 89045045661\n"
+        "<b>Telegram:</b> @Uniccornn\n"
+        "<b>Адрес:</b> ул. Горсоветская, д.49/1"
     )
     await bot.send_message(user_id, contact_info, reply_markup=main_keyboard(
         user_id=user_id,

@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
+
+  if (Telegram.WebApp) {
+      Telegram.WebApp.expand();
+  }
+
   function applyFilters() {
       const searchInput = document.getElementById('searchInput');
       const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';

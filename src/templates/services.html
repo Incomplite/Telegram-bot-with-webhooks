@@ -33,7 +33,7 @@
             <circle cx="12" cy="12" r="10"/>
             <path d="M12 6v6l4 2"/>
           </svg>
-          {{ service.duration }} мин
+          {{ service.duration }}
         </div>
         <div class="service-description">{{ service.description }}</div>
         {% if title == "Администрирование прайс-листа" %}
@@ -61,8 +61,8 @@
           <input type="number" id="servicePrice" required>
         </div>
         <div class="form-group">
-          <label for="serviceDuration">Длительность (мин):</label>
-          <input type="number" id="serviceDuration">
+          <label for="serviceDuration">Длительность:</label>
+          <input type="text" id="serviceDuration" required>
         </div>
         <div class="form-group">
           <label for="serviceDescription">Описание:</label>

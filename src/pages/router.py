@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 from src.config import settings
 from src.database import Appointment, Service, User
 from src.database.db import get_db
-from src.models import AppointmentStatus
+from src.database.models import AppointmentStatus
 
 router = APIRouter(prefix='', tags=['Фронтенд'])
 templates = Jinja2Templates(directory='src/templates')

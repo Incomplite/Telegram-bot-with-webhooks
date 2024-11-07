@@ -1,8 +1,8 @@
 """Add main models
 
-Revision ID: ee7dd05afd4d
+Revision ID: 92395ef46b90
 Revises: 9d91a8e708b7
-Create Date: 2024-11-03 18:03:03.930011
+Create Date: 2024-11-05 20:40:30.186370
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'ee7dd05afd4d'
+revision: str = '92395ef46b90'
 down_revision: Union[str, None] = '9d91a8e708b7'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -36,7 +36,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('description', sa.String(), nullable=True),
-    sa.Column('duration', sa.Integer(), nullable=False),
+    sa.Column('duration', sa.String(), nullable=False),
     sa.Column('price', sa.Integer(), nullable=False),
     sa.Column('image_url', sa.String(), nullable=True),
     sa.Column('is_price_from', sa.Boolean(), nullable=True),
@@ -58,6 +58,7 @@ def upgrade() -> None:
     sa.Column('date', sa.Date(), nullable=False),
     sa.Column('time', sa.Time(), nullable=False),
     sa.Column('total_price', sa.Integer(), nullable=False),
+    sa.Column('status', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_appointments_user_id'),
     sa.PrimaryKeyConstraint('id')
     )

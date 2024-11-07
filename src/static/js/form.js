@@ -21,7 +21,7 @@ document.getElementById('appointment-form').addEventListener('submit', function 
     const time = timeInput.value;
 
     if (timeInput.disabled) {
-        alert("Нет доступных времен. Пожалуйста, выберите другую дату.");
+        alert("Нет доступных окошек. Пожалуйста, выберите другую дату.");
         return;
     }
 
@@ -56,7 +56,7 @@ document.getElementById('date').addEventListener('change', async function () {
         if (response.status === 404 || data.slots.length === 0) {
             const option = document.createElement('option');
             option.value = '';
-            option.text = 'Нет доступных времен';
+            option.text = 'Нет доступных окошек';
             timeInput.appendChild(option);
             timeInput.disabled = true;
         } else {
@@ -86,9 +86,6 @@ document.getElementById('confirmForm').addEventListener('click', async function 
     const userId = document.getElementById('user_id').value;
     const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
 
-    const user = Telegram.WebApp.initDataUnsafe.user;
-    const username = user ? user.username : '';
-
     // Проверяем валидность полей
     if (name.length < 2 || name.length > 50) {
         alert("Имя должно быть от 2 до 50 символов.");
@@ -107,8 +104,7 @@ document.getElementById('confirmForm').addEventListener('click', async function 
         appointment_date: date,
         appointment_time: time,
         user_id: userId,
-        total_price: totalPrice,
-        username: username
+        total_price: totalPrice
     };
 
     // Преобразуем объект в JSON строку
@@ -152,6 +148,35 @@ document.getElementById('editForm').addEventListener('click', function() {
 
 // Добавляем текущую дату в поле даты
 document.addEventListener('DOMContentLoaded', (event) => {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('date').setAttribute('min', today);
+
+    if (Telegram.WebApp) {
+        Telegram.WebApp.expand();
+    }
+
+    const today = new Date();
+
+    // Устанавливаем минимальную дату на послезавтра
+    const minDate = new Date(today);
+    minDate.setDate(today.getDate() + 2);
+    const minDateString = minDate.toISOString().split('T')[0];
+    
+    // Устанавливаем максимальную дату на два месяца вперед
+    const maxDate = new Date(today);
+    maxDate.setMonth(today.getMonth() + 2);
+    const maxDateString = maxDate.toISOString().split('T')[0];
+
+    const dateInput = document.getElementById('date');
+    dateInput.setAttribute('min', minDateString);
+    dateInput.setAttribute('max', maxDateString);
+
+    // Запрещаем выбор воскресенья
+    dateInput.addEventListener('input', function() {
+        const selectedDate = new Date(this.value);
+        const dayOfWeek = selectedDate.getDay();
+
+        if (dayOfWeek === 0) { // Проверка на воскресенье
+            alert("Запись на воскресенье недоступна. Пожалуйста, выберите другую дату.");
+            this.value = '';
+        }
+    });
 });

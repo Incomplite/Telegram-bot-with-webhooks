@@ -5,15 +5,15 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
 from src.api.schemas import AppointmentData, Schedule, ServiceData, ServiceResponse
-from src.bot.bot_instance import bot
-from src.config import settings
-from src.database import Appointment, AvailableTimeSlot, Service
-from src.database.db import get_db
-from src.keyboards import contact_button, main_keyboard
-from src.middlewares.scheduler import scheduler
-from src.models import AppointmentStatus
 from src.api.utils import archive_appointment
-from src.handlers.reminder_router import schedule_reminder
+from src.bot.bot_instance import bot
+from src.bot.handlers.reminder_router import schedule_reminder
+from src.bot.keyboards import contact_button, main_keyboard
+from src.config import settings
+from src.database import Appointment, AvailableTimeSlot, Service, User
+from src.database.db import get_db
+from src.database.models import AppointmentStatus
+from src.middlewares.scheduler import scheduler
 
 router = APIRouter(prefix='/api', tags=['API'])
 
@@ -28,9 +28,14 @@ async def create_appointment(request: Request):
     formatted_time = validated_data.appointment_time.strftime("%H:%M")
     formatted_date = validated_data.appointment_date.strftime("%d.%m.%Y")
 
+    with get_db() as db:
+        user = db.query(User).filter(User.id == validated_data.user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+
     # Формируем сообщение для пользователя
     message = (
-        f"🎉 <b>{validated_data.name}, ваша заявка успешно принята!</b>\n\n"
+        f"🎉 <b>{validated_data.name}, ваша запись успешно принята!</b>\n\n"
         "💬 <b>Информация о вашей записи:</b>\n"
         f"👤 <b>Имя клиента:</b> {validated_data.name}\n"
         f"💅 <b>Услуги:</b> {', '.join(validated_data.services)}\n"
@@ -39,7 +44,9 @@ async def create_appointment(request: Request):
         f"💰 <b>Общая стоимость:</b> {validated_data.total_price} руб.\n\n"
     )
     contact_message = (
-        "Спасибо за то что выбрали нас! ✨ Мы ждём вас в назначенное время."
+        "Спасибо за Вашу запись! ✨\n"
+        "За день до Вашего прихода, Вам будет отправлено подтверждение.\nНе забудьте ответить.🌼"
+        "\nЕсли Вы захотите отменить запись раньше, сообщите мастеру об этом."
     )
 
     # Сообщение администратору
@@ -51,7 +58,7 @@ async def create_appointment(request: Request):
         f"📅 Дата: {formatted_date}\n"
         f"⏰ Время: {formatted_time}\n"
         f"💰 <b>Общая стоимость:</b> {validated_data.total_price} руб.\n\n"
-        f"<b>Пользователь:</b> @{validated_data.username}\n"
+        f"<b>Пользователь:</b> @{user.username}\n"
     )
 
     # Добавление заявки в базу данных
@@ -75,7 +82,10 @@ async def create_appointment(request: Request):
 
         db.commit()  # Сохраняем изменения с услугами
 
-        change_time = datetime.combine(validated_data.appointment_date, validated_data.appointment_time) + timedelta(hours=2)
+        change_time = datetime.combine(
+            validated_data.appointment_date,
+            validated_data.appointment_time
+        ) + timedelta(hours=2)
         scheduler.add_job(archive_appointment, "date", run_date=change_time, args=[appointment.id])
         schedule_reminder(appointment)
 
@@ -84,7 +94,7 @@ async def create_appointment(request: Request):
     # Отправка сообщений через бота
     await bot.send_message(chat_id=validated_data.user_id, text=message, reply_markup=kb)
     await bot.send_message(chat_id=validated_data.user_id, text=contact_message, reply_markup=inline_kb)
-    await bot.send_message(chat_id=settings.ADMIN_USER_ID, text=admin_message, reply_markup=kb)
+    await bot.send_message(chat_id=settings.ADMIN_USER_ID, text=admin_message)
 
     # Возвращаем успешный ответ
     return {"message": "success!"}
