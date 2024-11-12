@@ -25,7 +25,7 @@ def main_keyboard(user_id: int, first_name: str) -> ReplyKeyboardMarkup:
             KeyboardButton(text="💅Примеры работ")
         ],
         [
-            KeyboardButton(text="💡Идеи дизайна ногтей")
+            KeyboardButton(text="💡Идеи дизайна маникюра", web_app=WebAppInfo(url="https://pin.it/36Pvqck0n"))
         ],
         [
             KeyboardButton(text="☎️Контакты")

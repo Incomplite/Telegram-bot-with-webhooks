@@ -4,14 +4,18 @@ from aiogram.types import Update
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+import pytz
+
 from src.config import settings
 from src.utils import delete_old_schedule_entries
+
+MOSCOW_TZ = pytz.timezone("Europe/Moscow")
 
 jobstores = {
     'default': SQLAlchemyJobStore(url=settings.DATABASE_URL)
 }
 
-scheduler = AsyncIOScheduler(jobstores=jobstores)
+scheduler = AsyncIOScheduler(jobstores=jobstores, timezone=MOSCOW_TZ)
 
 
 class SchedulerMiddleware(BaseMiddleware):

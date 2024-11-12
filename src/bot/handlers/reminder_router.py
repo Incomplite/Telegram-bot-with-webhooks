@@ -20,7 +20,7 @@ router = Router()
 async def send_reminder(appointment_id, user_id, name, time):
     message = (
         f"Здравствуйте, {name}!\n\n"
-        f"⭐️ Напоминаю, что у вас запланирована запись на завтра в {time}.\n"
+        f"⭐️ Напоминаю, что у Вас запланирована запись на завтра в {time}.\n"
         f"Вы придете?"
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -34,7 +34,6 @@ async def send_reminder(appointment_id, user_id, name, time):
 # Функция для планирования напоминания
 def schedule_reminder(appointment):
     reminder_time = datetime.combine(appointment.date, appointment.time) - timedelta(days=1)
-    # reminder_time = datetime.now() + timedelta(seconds=30)
     scheduler.add_job(send_reminder, 'date', run_date=reminder_time, args=[
         appointment.id,
         appointment.user_id,
@@ -60,7 +59,7 @@ async def process_callback_button(callback_query: CallbackQuery):
 
         if action == 'confirm':
             appointment.status = AppointmentStatus.CONFIRMED.value
-            client_message = "Спасибо за подтверждение! Жду вас в назначенное время. 🌼"
+            client_message = "Спасибо за подтверждение! Жду Вас в назначенное время. 🌼"
         elif action == 'cancel':
             db.delete(appointment)
             client_message = "Ваша запись отменена. Спасибо! 🌼"
