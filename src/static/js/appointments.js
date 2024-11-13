@@ -17,10 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
       currentContainer.querySelectorAll('.appointment-card').forEach(card => {
           const name = card.querySelector('h2').textContent.toLowerCase();
           const services = card.querySelector('.services').textContent.toLowerCase();
-          const date = card.querySelector('p:nth-child(2)').textContent.split(': ')[1];
+          const cardDateText = card.querySelector('p:nth-child(2)').textContent.split(': ')[1];
+          const [day, month, year] = cardDateText.split('.'); // Разбиваем дату по формату dd.mm.yyyy
+          const cardDate = `${year}-${month}-${day}`; // Переводим в формат yyyy-mm-dd
 
           const matchesSearch = !searchTerm || name.includes(searchTerm) || services.includes(searchTerm);
-          const matchesDate = !dateFilter || date.includes(dateFilter);
+          const matchesDate = !dateFilter || cardDate === dateFilter;
           const matchesService = serviceFilters.length === 0 || 
                                   serviceFilters.some(filter => services.includes(filter.toLowerCase()));
 
