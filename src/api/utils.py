@@ -1,13 +1,10 @@
-from src.database import Appointment
-from src.database.db import get_db
+from src.api.dao import AppointmentDAO
 from src.database.models import AppointmentStatus
 
 
 async def archive_appointment(appointment_id: int):
-    with get_db() as db:
-        appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
-        if appointment:
-            appointment.status = AppointmentStatus.ARCHIVED.value
-            db.commit()
-            print("Запись перенесена в архив")
+    appointment = await AppointmentDAO.update(appointment_id, status=AppointmentStatus.ARCHIVED.value)
+    if appointment:
+        print("Запись перенесена в архив")
+    else:
         print("Запись не найдена")

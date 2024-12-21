@@ -8,7 +8,7 @@ router = Router()
 
 @router.message(F.text == "💅Примеры работ")
 async def show_photo(message: types.Message):
-    photos = get_photos()
+    photos = await get_photos()
     media = [types.InputMediaPhoto(media=photo.photo_url) for photo in photos]
     await message.answer("Вот фото нескольких работ:")
     await message.answer_media_group(media, reply_markup=main_keyboard(

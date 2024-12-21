@@ -7,10 +7,9 @@ from aiogram.types import (
     InlineKeyboardMarkup
 )
 
+from src.api.dao import AppointmentDAO
 from src.bot.bot_instance import bot
 from src.config import settings
-from src.database import Appointment
-from src.database.db import get_db
 from src.database.models import AppointmentStatus
 from src.middlewares.scheduler import scheduler
 
@@ -47,31 +46,27 @@ async def process_callback_button(callback_query: CallbackQuery):
     action, appointment_id = callback_query.data.split('_')
     appointment_id = int(appointment_id)
 
-    with get_db() as db:
-        appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    appointment = await AppointmentDAO.find_one_or_none(id=appointment_id)
+    if appointment is None:
+        return
 
-        if appointment is None:
-            return
+    user_id = appointment.user_id
+    appointment_time = appointment.time.strftime('%H:%M')
+    client_name = appointment.name
 
-        user_id = appointment.user_id
-        appointment_time = appointment.time.strftime('%H:%M')
-        client_name = appointment.name
+    if action == 'confirm':
+        await AppointmentDAO.update(appointment_id, status=AppointmentStatus.CONFIRMED.value)
+        client_message = "Спасибо за подтверждение! Жду Вас в назначенное время. 🌼"
+    elif action == 'cancel':
+        await AppointmentDAO.delete(id=appointment_id)
+        client_message = "Ваша запись отменена. Спасибо! 🌼"
 
-        if action == 'confirm':
-            appointment.status = AppointmentStatus.CONFIRMED.value
-            client_message = "Спасибо за подтверждение! Жду Вас в назначенное время. 🌼"
-        elif action == 'cancel':
-            db.delete(appointment)
-            client_message = "Ваша запись отменена. Спасибо! 🌼"
-
-        admin_message = (
-            f"🔔 <b>{'Клиент подтвердил' if action == 'confirm' else 'Клиент отменил'} запись:</b>\n\n"
-            f"👤 Имя клиента: {client_name}\n"
-            f"👤 Профиль: @{callback_query.from_user.username}\n"
-            f"⏰ Время: {appointment_time}\n"
-        )
-
-        db.commit()
+    admin_message = (
+        f"🔔 <b>{'Клиент подтвердил' if action == 'confirm' else 'Клиент отменил'} запись:</b>\n\n"
+        f"👤 Имя клиента: {client_name}\n"
+        f"👤 Профиль: @{callback_query.from_user.username}\n"
+        f"⏰ Время: {appointment_time}\n"
+    )
 
     await bot.send_message(chat_id=user_id, text=client_message)
     await bot.send_message(chat_id=settings.MASTER_CHAT_ID, text=admin_message)
