@@ -4,14 +4,14 @@ from fastapi import APIRouter, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
-from src.api.schemas import AppointmentData, Schedule, ServiceData, ServiceResponse
+from src.api.dao import AppointmentDAO, AvailableTimeSlotDAO, ServiceDAO, UserDAO
+
+from src.api.schemas import AppointmentData, Schedule, ServiceData
 from src.api.utils import archive_appointment
 from src.bot.bot_instance import bot
 from src.bot.handlers.reminder_router import schedule_reminder
 from src.bot.keyboards import contact_button, main_keyboard
 from src.config import settings
-from src.database import Appointment, AvailableTimeSlot, Service, User
-from src.database.db import get_db
 from src.database.models import AppointmentStatus
 from src.middlewares.scheduler import scheduler
 
@@ -28,10 +28,9 @@ async def create_appointment(request: Request):
     formatted_time = validated_data.appointment_time.strftime("%H:%M")
     formatted_date = validated_data.appointment_date.strftime("%d.%m.%Y")
 
-    with get_db() as db:
-        user = db.query(User).filter(User.id == validated_data.user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="Пользователь не найден")
+    user = await UserDAO.find_one_or_none(id=validated_data.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
 
     # Формируем сообщение для пользователя
     message = (
@@ -62,32 +61,28 @@ async def create_appointment(request: Request):
     )
 
     # Добавление заявки в базу данных
-    with get_db() as db:
-        appointment = Appointment(
-            user_id=validated_data.user_id,
-            name=validated_data.name,
-            date=validated_data.appointment_date,
-            time=validated_data.appointment_time,
-            total_price=validated_data.total_price,
-            status=AppointmentStatus.ACTIVE.value
-        )
-        db.add(appointment)
-        db.commit()  # Сохраняем изменения
+    appointment = await AppointmentDAO.add(
+        user_id=validated_data.user_id,
+        name=validated_data.name,
+        date=validated_data.appointment_date,
+        time=validated_data.appointment_time,
+        total_price=validated_data.total_price,
+        status=AppointmentStatus.ACTIVE.value
+    )
 
-        # Добавление услуг в ассоциативную таблицу
-        for service_name in validated_data.services:
-            service = db.query(Service).filter(Service.name == service_name).first()
-            if service:
-                appointment.services.append(service)  # Добавляем услуги к записи
+    # Добавление услуг к заявке
+    for service_name in validated_data.services:
+        service = await ServiceDAO.find_one_or_none(name=service_name)
+        if service:
+            await AppointmentDAO.add_service(appointment.id, service)
 
-        db.commit()  # Сохраняем изменения с услугами
-
-        change_time = datetime.combine(
-            validated_data.appointment_date,
-            validated_data.appointment_time
-        ) + timedelta(hours=2)
-        scheduler.add_job(archive_appointment, "date", run_date=change_time, args=[appointment.id])
-        schedule_reminder(appointment)
+    change_time = datetime.combine(
+        validated_data.appointment_date,
+        validated_data.appointment_time
+    ) + timedelta(hours=2)
+    # + timedelta(hours=2)
+    scheduler.add_job(archive_appointment, "date", run_date=change_time, args=[appointment.id])
+    schedule_reminder(appointment)
 
     kb = main_keyboard(user_id=validated_data.user_id, first_name=validated_data.name)
     inline_kb = contact_button()
@@ -102,119 +97,95 @@ async def create_appointment(request: Request):
 
 @router.delete("/appointment/{appointment_id}")
 async def delete_appointment(appointment_id: int):
-    with get_db() as db:
-        appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
-        if appointment:
-            db.delete(appointment)
-            db.commit()
-            return JSONResponse(status_code=200, content={"message": "Запись удалена"})
-        return JSONResponse(status_code=404, content={"message": "Запись не найдена"})
+    is_deleted = await AppointmentDAO.delete_with_services(appointment_id)
+    if is_deleted:
+        return JSONResponse(status_code=200, content={"message": "Запись удалена"})
+    return JSONResponse(status_code=404, content={"message": "Запись не найдена"})
 
 
 @router.get("/all-slots/{date}")
 async def get_all_slots(date: date):
-    with get_db() as db:
-        slot = db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == date).first()
-        if slot:
-            return {"slots": slot.get_time_slots()}
-        return JSONResponse(status_code=404, content={"message": "Слоты не найдены"})
+    slot = await AvailableTimeSlotDAO.find_one_or_none(date=date)
+    if slot:
+        return {"slots": slot.get_time_slots()}
+    return JSONResponse(status_code=404, content={"message": "Слоты не найдены"})
 
 
 @router.get("/available-slots/{date}")
 async def get_available_slots(date: date):
-    with get_db() as db:
-        slot = db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == date).first()
+    slot = await AvailableTimeSlotDAO.find_one_or_none(date=date)
+    if slot:
         # Отфильтровываем уже забронированные места
-        booked_times = db.query(Appointment.time).filter(Appointment.date == date).all()
-        booked_times = {t[0].strftime("%H:%M") for t in booked_times}
-        # Удаляем забронированные слоты из списка доступных слотов
-        if slot:
-            available_slots = [time for time in slot.get_time_slots() if time not in booked_times]
-            return {"slots": available_slots}
-        return JSONResponse(status_code=404, content={"message": "Слоты не найдены"})
+        booked_times = await AppointmentDAO.find_all(date=date)
+        booked_times = {time.time.strftime("%H:%M") for time in booked_times}
+        available_slots = [time for time in slot.get_time_slots() if time not in booked_times]
+        return {"slots": available_slots}
+    return JSONResponse(status_code=404, content={"message": "Слоты не найдены"})
 
 
 @router.post("/schedule")
 async def save_schedule(schedule: Schedule):
-    with get_db() as db:
-        existing_slots = db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == schedule.date).first()
+    if not schedule.slots or len(schedule.slots) == 0:
+        # Если слоты не выбраны, удаляем запись для данной даты
+        await AvailableTimeSlotDAO.delete(date=schedule.date)
+        return {"status": "deleted"}
 
-        if not schedule.slots or len(schedule.slots) == 0:
-            # Если слоты не выбраны, удаляем запись для данной даты
-            if existing_slots:
-                db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date == schedule.date).delete()
-                db.commit()
-
-        # Если слоты выбраны, обновляем существующую запись
-        if existing_slots:
-            existing_slots.set_time_slots(schedule.slots)
-        else:
-            # Если записи не существует, создаем новую
-            new_slot = AvailableTimeSlot(date=schedule.date)
-            new_slot.set_time_slots(schedule.slots)
-            db.add(new_slot)
-
-        db.commit()
-
-        return {"status": "success"}
+    # Если слоты выбраны, добавляем или обновляем запись
+    await AvailableTimeSlotDAO.add_or_update(schedule.date, schedule.slots)
+    return {"status": "success"}
 
 
 @router.get("/schedules")
 async def get_schedules():
-    with get_db() as db:
-        schedules = db.query(AvailableTimeSlot).all()
-        response = {}
-        for slot in schedules:
-            response[slot.date] = slot.get_time_slots()
+    schedules = await AvailableTimeSlotDAO.find_all()
+    response = {}
+    for slot in schedules:
+        response[slot.date] = slot.get_time_slots()
 
-        return [{"date": date, "slots": times} for date, times in response.items()]
+    return [{"date": date, "slots": times} for date, times in response.items()]
 
 
-@router.post("/services", response_model=ServiceResponse, status_code=201)
+@router.post("/services", status_code=201)
 async def create_service(request: Request):
     data = await request.json()
     validated_data = ServiceData(**data)
-    service = Service(
+    service = await ServiceDAO.add(
         name=validated_data.name,
         price=validated_data.price,
         duration=validated_data.duration,
         description=validated_data.description
     )
 
-    with get_db() as db:
-        db.add(service)
-        db.commit()
-        db.refresh(service)
+    if not service:
+        raise HTTPException(status_code=400, detail="Failed to create service")
 
     return service
 
 
-@router.put("/services/{service_id}", response_model=ServiceResponse, status_code=200)
+@router.put("/services/{service_id}", status_code=200)
 async def update_service(service_id: int, request: Request):
     data = await request.json()
 
-    with get_db() as db:
-        service = db.query(Service).filter(Service.id == service_id).first()
-        if not service:
-            raise HTTPException(status_code=404, detail="Service not found")
+    # Найти существующую услугу
+    service = await ServiceDAO.find_one_or_none(id=service_id)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
 
-        service.name = data['name']
-        service.price = data['price']
-        service.duration = data['duration']
-        service.description = data['description']
+    # Обновить атрибуты
+    for key, value in data.items():
+        setattr(service, key, value)
 
-        db.commit()
-        db.refresh(service)
-
-    return service
+    # Сохранить изменения
+    result = await ServiceDAO.update(service_id, **data)  # Убедитесь, что передаете нужные данные
+    if result:
+        return await ServiceDAO.find_one_or_none(id=service_id)  # Возвращаем обновленную запись
+    else:
+        raise HTTPException(status_code=500, detail="Failed to update service")
 
 
 @router.delete("/services/{service_id}")
 async def delete_service(service_id: int):
-    with get_db() as db:
-        service = db.query(Service).filter(Service.id == service_id).first()
-        if service:
-            db.delete(service)
-            db.commit()
-            return JSONResponse(status_code=200, content={"message": "Услуга удалена"})
-        return JSONResponse(status_code=404, content={"message": "Услуга не найдена"})
+    service = await ServiceDAO.delete(id=service_id)
+    if service:
+        return JSONResponse(status_code=200, content={"message": "Услуга удалена"})
+    return JSONResponse(status_code=404, content={"message": "Услуга не найдена"})

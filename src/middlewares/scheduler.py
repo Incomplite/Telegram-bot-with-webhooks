@@ -11,11 +11,7 @@ from src.utils import delete_old_schedule_entries
 
 MOSCOW_TZ = pytz.timezone("Europe/Moscow")
 
-jobstores = {
-    'default': SQLAlchemyJobStore(url=settings.DATABASE_URL)
-}
-
-scheduler = AsyncIOScheduler(jobstores=jobstores, timezone=MOSCOW_TZ)
+scheduler = AsyncIOScheduler(timezone=MOSCOW_TZ)
 
 
 class SchedulerMiddleware(BaseMiddleware):

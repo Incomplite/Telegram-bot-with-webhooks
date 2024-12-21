@@ -2,14 +2,12 @@ from datetime import datetime, timedelta
 
 from aiogram.types import Message
 
+from src.api.dao import PhotoDAO, AvailableTimeSlotDAO
 from src.bot.keyboards import main_keyboard
-from src.database import AvailableTimeSlot, Photo
-from src.database.db import get_db
 
 
-def get_photos():
-    with get_db() as db:
-        photos = db.query(Photo).all()
+async def get_photos():
+    photos = await PhotoDAO.find_all()
     return photos
 
 
@@ -30,8 +28,4 @@ async def greet_user(message: Message, is_new_user: bool) -> None:
 
 async def delete_old_schedule_entries():
     threshold_date = datetime.now().date() + timedelta(days=1)
-    print(f"Запуск задачи на удаление записей старше {threshold_date}")
-    with get_db() as db:
-        db.query(AvailableTimeSlot).filter(AvailableTimeSlot.date < threshold_date).delete()
-        db.commit()
-    print("Старые записи успешно удалены.")
+    await AvailableTimeSlotDAO.delete(date__lt=threshold_date)

@@ -2,8 +2,7 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from src.database import User
-from src.database.db import get_db
+from src.api.dao import UserDAO
 from src.utils import greet_user
 
 router = Router()
@@ -14,15 +13,13 @@ async def cmd_start(message: Message) -> None:
     """
     Обрабатывает команду /start.
     """
-    with get_db() as db:
-        user = db.query(User).filter(User.id == message.from_user.id).first()
+    user = await UserDAO.find_one_or_none(id=message.from_user.id)
 
-        if not user:
-            db.add(User(
-                id=message.from_user.id,
-                name=message.from_user.first_name,
-                username=message.from_user.username
-            ))
-            db.commit()
+    if not user:
+        user = UserDAO.add(
+            id=message.from_user.id,
+            name=message.from_user.first_name,
+            username=message.from_user.username
+        )
 
     await greet_user(message, is_new_user=not user)
